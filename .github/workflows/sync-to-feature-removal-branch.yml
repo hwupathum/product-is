@@ -17,6 +17,7 @@ jobs:
       - name: Create pull request
         uses: repo-sync/pull-request@v2
         with:
-          source_branch: ${{github.head_ref}}
+          source_branch: ${{ github.head_ref }}
           destination_branch: feature-removal
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           pr_title: "[Automate] Merge pull request from ${{github.head_ref}} to feature-removal (${{github.base_ref}})"
