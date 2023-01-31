@@ -17,5 +17,10 @@ jobs:
       - name: Create pull request
         uses: repo-sync/pull-request@v2
         with:
-          source_branch: "master" 
-          destination_branch: "feature-removal"
+          source_branch: $GITHUB_HEAD_REF
+          destination_branch: feature-removal
+          pr_title: \[Automate] Merge pull request from $GITHUB_HEAD_REF to feature-removal
+          pr_body: |
+            :crown: *An automated PR*
+
+            _Created by [repo-sync/pull-request](https://github.com/repo-sync/pull-request)_
