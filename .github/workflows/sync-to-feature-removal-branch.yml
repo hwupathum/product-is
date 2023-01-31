@@ -18,4 +18,4 @@ jobs:
         uses: repo-sync/pull-request@v2
         with:
           source_branch: "master" 
-          destination_branch: "test"
+          destination_branch: "feature-removal"
