@@ -18,4 +18,4 @@ jobs:
         uses: repo-sync/pull-request@v2
         with:
           source_branch: "master" 
-          destination_branch: "6.0.x"
+          destination_branch: "test"
