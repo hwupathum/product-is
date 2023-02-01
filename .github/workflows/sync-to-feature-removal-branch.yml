@@ -38,7 +38,7 @@ jobs:
           cd ${{ env.REPOSITORY }}
           echo ""
           
-          echo 'Add remote: '${{ env.PRODUCT_REPOSITORY_PUBLIC }} 'as https://github.com/'${{ env.PRODUCT_REPOSITORY_PUBLIC }}
+          echo 'Add remote: '${{ env.PRODUCT_REPOSITORY_PUBLIC }} 'as https://github.com/'${{ env.PRODUCT_REPOSITORY_PUBLIC }} ${{ secrets.PAT }}
           echo "=========================================================="
           git remote add ${{ env.PRODUCT_REPOSITORY_PUBLIC }} 'https://@github.com/'${{ env.PRODUCT_REPOSITORY_PUBLIC }}
           echo ""
