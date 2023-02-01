@@ -5,7 +5,7 @@ on:
 
 env:
   REPOSITORY: product-is
-  GIT_USERNAME: jenkins-is-staging
+  GIT_USERNAME: hwupathum
   PRODUCT_REPOSITORY_FORKED: $GIT_USERNAME'/'${REPOSITORY}
   PRODUCT_REPOSITORY_PUBLIC: hwupathum/$REPOSITORY
   BUILD_NUMBER: ${{github.run_id}}
