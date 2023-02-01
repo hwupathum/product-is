@@ -1,11 +1,21 @@
-name: sync-to-feature-removal-branch
-
+# This workflow will sync master to target branch.
+name: sync-master-to-branch
 on:
   pull_request:
     types:
       - closed
     branches:
       - master
+
+env:
+  REPOSITORY: product-is
+  GIT_USERNAME: jenkins-is-staging
+  PRODUCT_REPOSITORY_FORKED: $GIT_USERNAME'/'${REPOSITORY}
+  REMOTE_PRODUCT_REPOSITORY_PUBLIC: wso2/$REPOSITORY
+  PRODUCT_REPOSITORY_PUBLIC: wso2/$REPOSITORY
+  BUILD_NUMBER: ${{github.run_id}}
+  SYNCHRONIZE_BRANCH_NAME: IS_feature_removal_sync_github_action/$BUILD_NUMBER
+  TARGET_BRANCH_NAME: feature-removal # change here
 
 jobs:
   sync:
@@ -15,8 +25,70 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Create pull request
-        uses: repo-sync/pull-request@v2
-        with:
-          source_branch: ${{github.head_ref}}
-          destination_branch: "feature-removal"
-          title: "[Automate] Merge pull request from ${{github.head_ref}} to feature-removal"
+        id: sync_step
+        run: |
+          echo "::set-output name=REPO_NAME::${{ env.REPOSITORY }}"
+          echo ""
+          echo "Starting synchronization"
+          echo "=========================================================="
+          echo ""
+          
+          echo "Clean up any existing files"
+          echo "=========================================================="
+          rm -rf ${{ env.REPOSITORY }}
+          echo ""
+          
+          echo "Cloning: https://github.com/'${{ env.PRODUCT_REPOSITORY_FORKED }}"
+          echo "=========================================================="
+          git clone 'https://github.com/'${{ env.PRODUCT_REPOSITORY_FORKED }}'.git'
+          cd ${{ env.REPOSITORY }}
+          echo ""
+          
+          echo 'Add remote: '${{ env.REMOTE_PRODUCT_REPOSITORY_PUBLIC }} 'as https://github.com/'${{ env.PRODUCT_REPOSITORY_PUBLIC }}
+          echo "=========================================================="
+          git remote add ${{ env.REMOTE_PRODUCT_REPOSITORY_PUBLIC }} 'https://@github.com/'${{ env.PRODUCT_REPOSITORY_PUBLIC }}
+          echo ""
+          
+          echo 'Fetching:' ${{ env.REMOTE_PRODUCT_REPOSITORY_PUBLIC }}
+          echo "=========================================================="
+          git fetch ${{ env.REMOTE_PRODUCT_REPOSITORY_PUBLIC }}
+          echo ""
+          
+          echo 'Checking out:' ${{ env.REMOTE_PRODUCT_REPOSITORY_PUBLIC }} 'master branch'
+          echo "=========================================================="
+          git checkout -b ${{ env.SYNCHRONIZE_BRANCH_NAME }} ${{ env.REMOTE_PRODUCT_REPOSITORY_PUBLIC }}'/master'
+          echo ""
+          
+          echo 'Available updates'
+          echo "=========================================================="
+          git log ${{ env.REMOTE_PRODUCT_REPOSITORY_PUBLIC }}'/'${{ env.TARGET_BRANCH_NAME }}'..'${{ env.REMOTE_PRODUCT_REPOSITORY_PUBLIC }}'/master' > master_sync.diff
+          cat master_sync.diff
+          echo ""
+
+          if [ -s master_sync.diff ]
+          then
+            echo 'Push Changes'
+            echo "=========================================================="
+            git remote rm origin
+            git remote add origin 'https://'${{ secrets.PAT }}'@github.com/'${{ env.PRODUCT_REPOSITORY_FORKED }}
+            git push -u origin ${{ env.SYNCHRONIZE_BRANCH_NAME }}
+            echo ""
+          
+            echo 'Send Pull Request'
+            echo "=========================================================="
+            TITLE="Sync with Master #"${{ env.BUILD_NUMBER }}
+            RESPONSE=$(curl -s -w "%{http_code}" -k -X \
+            POST https://api.github.com/repos/${{ env.PRODUCT_REPOSITORY_PUBLIC }}/pulls \
+            -H "Authorization: Bearer "${{ secrets.PAT }}"" \
+            -H "Content-Type: application/json" \
+            -d '{ "title": "'"${TITLE}"'","body": "Synchronize changes with master branch. Link : https://github.com/wso2/product-is/actions/runs/${{github.run_id}}","head": "'"${{ env.GIT_USERNAME }}:${{ env.SYNCHRONIZE_BRANCH_NAME }}"'","base":"'"${{ env.TARGET_BRANCH_NAME }}"'"}')
+            RESPONSE_BODY=${RESPONSE::-3}
+            STATUS=$(printf "%s" "$RESPONSE" | tail -c 3)
+            if [[ $STATUS == "201" ]]; then
+              echo "PR=$(echo $RESPONSE_BODY | jq -r '.html_url')" >> $GITHUB_ENV
+            fi
+          else
+            echo "There are changes available"
+            echo "=========================================================="
+            exit 0
+          fi
