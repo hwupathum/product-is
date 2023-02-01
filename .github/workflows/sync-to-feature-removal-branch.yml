@@ -11,8 +11,7 @@ env:
   REPOSITORY: product-is
   GIT_USERNAME: jenkins-is-staging
   PRODUCT_REPOSITORY_FORKED: $GIT_USERNAME'/'${REPOSITORY}
-  REMOTE_PRODUCT_REPOSITORY_PUBLIC: wso2/$REPOSITORY
-  PRODUCT_REPOSITORY_PUBLIC: wso2/$REPOSITORY
+  PRODUCT_REPOSITORY_PUBLIC: hwupathum/$REPOSITORY
   BUILD_NUMBER: ${{github.run_id}}
   SYNCHRONIZE_BRANCH_NAME: IS_feature_removal_sync_github_action/$BUILD_NUMBER
   TARGET_BRANCH_NAME: feature-removal # change here
@@ -44,24 +43,24 @@ jobs:
           cd ${{ env.REPOSITORY }}
           echo ""
           
-          echo 'Add remote: '${{ env.REMOTE_PRODUCT_REPOSITORY_PUBLIC }} 'as https://github.com/'${{ env.PRODUCT_REPOSITORY_PUBLIC }}
+          echo 'Add remote: '${{ env.PRODUCT_REPOSITORY_PUBLIC }} 'as https://github.com/'${{ env.PRODUCT_REPOSITORY_PUBLIC }}
           echo "=========================================================="
-          git remote add ${{ env.REMOTE_PRODUCT_REPOSITORY_PUBLIC }} 'https://@github.com/'${{ env.PRODUCT_REPOSITORY_PUBLIC }}
+          git remote add ${{ env.PRODUCT_REPOSITORY_PUBLIC }} 'https://@github.com/'${{ env.PRODUCT_REPOSITORY_PUBLIC }}
           echo ""
           
-          echo 'Fetching:' ${{ env.REMOTE_PRODUCT_REPOSITORY_PUBLIC }}
+          echo 'Fetching:' ${{ env.PRODUCT_REPOSITORY_PUBLIC }}
           echo "=========================================================="
-          git fetch ${{ env.REMOTE_PRODUCT_REPOSITORY_PUBLIC }}
+          git fetch ${{ env.PRODUCT_REPOSITORY_PUBLIC }}
           echo ""
           
-          echo 'Checking out:' ${{ env.REMOTE_PRODUCT_REPOSITORY_PUBLIC }} 'master branch'
+          echo 'Checking out:' ${{ env.PRODUCT_REPOSITORY_PUBLIC }} 'master branch'
           echo "=========================================================="
-          git checkout -b ${{ env.SYNCHRONIZE_BRANCH_NAME }} ${{ env.REMOTE_PRODUCT_REPOSITORY_PUBLIC }}'/master'
+          git checkout -b ${{ env.SYNCHRONIZE_BRANCH_NAME }} ${{ env.PRODUCT_REPOSITORY_PUBLIC }}'/master'
           echo ""
           
           echo 'Available updates'
           echo "=========================================================="
-          git log ${{ env.REMOTE_PRODUCT_REPOSITORY_PUBLIC }}'/'${{ env.TARGET_BRANCH_NAME }}'..'${{ env.REMOTE_PRODUCT_REPOSITORY_PUBLIC }}'/master' > master_sync.diff
+          git log ${{ env.PRODUCT_REPOSITORY_PUBLIC }}'/'${{ env.TARGET_BRANCH_NAME }}'..'${{ env.PRODUCT_REPOSITORY_PUBLIC }}'/master' > master_sync.diff
           cat master_sync.diff
           echo ""
 
