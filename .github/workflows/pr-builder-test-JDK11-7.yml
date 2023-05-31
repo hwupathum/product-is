@@ -5,11 +5,9 @@ on:
     inputs:
       pr:
         description: "Enter PR link (ex: https://github.com/wso2-extensions/identity-inbound-auth-oauth/pull/1481)"
-        default:
         required: true
       jdk:
         description: "Enter Java version (ex: 8,11)"
-        default:
         required: true
 
 env:
@@ -28,7 +26,7 @@ jobs:
           owner=$(echo '${{github.event.inputs.pr}}' | cut -d "/" -f 4)
           repo=$(echo '${{github.event.inputs.pr}}' | cut -d "/" -f 5)
           pr_number=$(echo '${{github.event.inputs.pr}}' | cut -d "/" -f 7)
-          curl -X POST https://api.github.com/repos/$owner/$repo/issues/$pr_number/comments -H 'Authorization: token ${{secrets.PR_BUILDER_COMMENT}}' -d '{"body":"PR builder [7.x.x] started \nLink: https://github.com/wso2/product-is/actions/runs/${{github.run_id}}"}'
+          curl -X POST https://api.github.com/repos/$owner/$repo/issues/$pr_number/comments -H 'Authorization: token ${{secrets.PR_BUILDER_COMMENT}}' -d '{"body":"PR builder [7.x.x] started"}'
       - uses: actions/checkout@v2
       - name: Set up Adopt JDK 8
         uses: actions/setup-java@v2
@@ -120,11 +118,11 @@ jobs:
           owner=$(echo '${{github.event.inputs.pr}}' | cut -d "/" -f 4)
           repo=$(echo '${{github.event.inputs.pr}}' | cut -d "/" -f 5)
           pr_number=$(echo '${{github.event.inputs.pr}}' | cut -d "/" -f 7)
-          curl -X POST https://api.github.com/repos/$owner/$repo/issues/$pr_number/comments -H 'Authorization: token ${{secrets.PR_BUILDER_COMMENT}}' -d '{"body":"PR builder [7.x.x] completed \nLink: https://github.com/wso2/product-is/actions/runs/${{github.run_id}} \nStatus: **${{job.status}}**"}'
+          curl -X POST https://api.github.com/repos/$owner/$repo/issues/$pr_number/comments -H 'Authorization: token ${{secrets.PR_BUILDER_COMMENT}}' -d '{"body":"PR builder [7.x.x] completed \nStatus: **${{job.status}}**"}'
       - name: Approve PR
         if: success()
         run: |
           owner=$(echo '${{github.event.inputs.pr}}' | cut -d "/" -f 4)
           repo=$(echo '${{github.event.inputs.pr}}' | cut -d "/" -f 5)
           pr_number=$(echo '${{github.event.inputs.pr}}' | cut -d "/" -f 7)
-          curl -X POST https://api.github.com/repos/$owner/$repo/pulls/$pr_number/reviews -H 'Authorization:token ${{secrets.PR_BUILDER_COMMENT}}' -d '{"body":"Approving the pull request based on the successful pr build https://github.com/wso2/product-is/actions/runs/${{github.run_id}}","event":"APPROVE"}'
+          curl -X POST https://api.github.com/repos/$owner/$repo/pulls/$pr_number/reviews -H 'Authorization:token ${{secrets.PR_BUILDER_COMMENT}}' -d '{"body":"Approving the pull request based on the successful pr build","event":"APPROVE"}'
