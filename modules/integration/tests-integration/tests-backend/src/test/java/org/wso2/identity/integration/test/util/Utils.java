@@ -139,9 +139,9 @@ public class Utils {
     public static void setSystemProperties(Class classIn) {
 
         System.setProperty("javax.net.ssl.trustStore", FrameworkPathUtil.getSystemResourceLocation() + File.separator +
-                "keystores" + File.separator + "products" + File.separator + ISIntegrationTest.KEYSTORE_NAME);
+                "keystores" + File.separator + "products" + File.separator + "wso2carbon.p12");
         System.setProperty("javax.net.ssl.trustStorePassword", "wso2carbon");
-        System.setProperty("javax.net.ssl.trustStoreType", ISIntegrationTest.KEYSTORE_TYPE);
+        System.setProperty("javax.net.ssl.trustStoreType", "PKCS12");
     }
 
     public static HttpResponse sendPOSTMessage(String sessionKey, String url, String userAgent, String

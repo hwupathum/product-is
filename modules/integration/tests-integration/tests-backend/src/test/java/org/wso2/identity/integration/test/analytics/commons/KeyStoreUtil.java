@@ -17,7 +17,6 @@
 package org.wso2.identity.integration.test.analytics.commons;
 
 import org.wso2.carbon.automation.engine.frameworkutils.FrameworkPathUtil;
-import org.wso2.identity.integration.common.utils.ISIntegrationTest;
 
 import java.io.File;
 
@@ -35,7 +34,7 @@ public class KeyStoreUtil {
 
 	public static void setKeyStoreParams() {
 		String keyStore = filePath.getAbsolutePath();
-		System.setProperty("Security.KeyStore.Location", keyStore + ISIntegrationTest.URL_SEPARATOR + ISIntegrationTest.KEYSTORE_NAME);
+		System.setProperty("Security.KeyStore.Location", keyStore + "/wso2carbon.p12");
 		System.setProperty("Security.KeyStore.Password", "wso2carbon");
 
 	}
