@@ -38,7 +38,6 @@ import org.wso2.carbon.security.mgt.stub.keystore.KeyStoreAdminServiceStub;
 import org.wso2.carbon.security.mgt.stub.keystore.RemoveCertFromStore;
 import org.wso2.carbon.security.mgt.stub.keystore.xsd.KeyStoreData;
 import org.wso2.carbon.security.mgt.stub.keystore.xsd.PaginatedKeyStoreData;
-import org.wso2.carbon.utils.security.KeystoreUtils;
 
 import java.io.ByteArrayInputStream;
 import java.rmi.RemoteException;
@@ -144,7 +143,7 @@ public class KeyStoreAdminClient {
         try {
             boolean isPrivateStore = false;
             ByteArrayInputStream stream = new ByteArrayInputStream(content);
-            KeyStore store = KeystoreUtils.getKeystoreInstance(type);
+            KeyStore store = KeyStore.getInstance(type);
             store.load(stream, password.toCharArray());
             Enumeration<String> aliases = store.aliases();
             while (aliases.hasMoreElements()) {

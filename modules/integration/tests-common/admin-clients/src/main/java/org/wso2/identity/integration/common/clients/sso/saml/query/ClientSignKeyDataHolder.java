@@ -24,7 +24,6 @@ import org.opensaml.security.credential.Credential;
 import org.opensaml.security.credential.CredentialContextSet;
 import org.opensaml.security.credential.UsageType;
 import org.opensaml.security.x509.X509Credential;
-import org.wso2.carbon.utils.security.KeystoreUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -75,7 +74,7 @@ public class ClientSignKeyDataHolder implements X509Credential {
         try {
             File file = new File(keyStorePath);
             is = new FileInputStream(file);
-            KeyStore keystore = KeystoreUtils.getKeystoreInstance(KeyStore.getDefaultType());
+            KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
             keystore.load(is, password.toCharArray());
 
             privateKey = (PrivateKey) keystore.getKey(keyAlias, password.toCharArray());
