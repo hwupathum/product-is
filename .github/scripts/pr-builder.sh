@@ -74,6 +74,7 @@ echo "Cloning product-is"
 echo "=========================================================="
 
 git clone https://github.com/wso2/product-is product-is-$BUILDER_NUMBER
+git checkout next
 
 disable_tests "$ENABLED_TESTS"
 
