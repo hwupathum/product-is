@@ -83,7 +83,10 @@ if [ "$REPO" = "product-is" ]; then
   echo "PR is for the product-is itself. Start building with test..."
   echo "=========================================================="
   cd product-is-$BUILDER_NUMBER
+
+  git stash
   git checkout next
+  git stash pop
 
   echo ""
   echo "Applying PR $PULL_NUMBER as a diff..."
