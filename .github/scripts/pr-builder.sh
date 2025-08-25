@@ -74,7 +74,6 @@ echo "Cloning product-is"
 echo "=========================================================="
 
 git clone https://github.com/wso2/product-is product-is-$BUILDER_NUMBER
-git checkout next
 
 disable_tests "$ENABLED_TESTS"
 
@@ -84,6 +83,7 @@ if [ "$REPO" = "product-is" ]; then
   echo "PR is for the product-is itself. Start building with test..."
   echo "=========================================================="
   cd product-is-$BUILDER_NUMBER
+  git checkout next
 
   echo ""
   echo "Applying PR $PULL_NUMBER as a diff..."
