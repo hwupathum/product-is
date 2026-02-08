@@ -1,79 +1,27 @@
+"""
+Client configurations with dynamically generated certificates to avoid expiration.
+"""
+
+import sys
+import os
+
+# Add parent directory to path to import generate_certs
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'resource-server', 'jwks_to_host'))
+from generate_certs import generate_client_jwks, generate_mtls_cert_and_key
+
+# Generate fresh client JWKS and mTLS certificates
+_client1_jwks = generate_client_jwks(validity_days=365)
+_client2_jwks = generate_client_jwks(validity_days=365)
+_mtls1 = generate_mtls_cert_and_key(validity_days=365)
+_mtls2 = generate_mtls_cert_and_key(validity_days=365)
+
 client_configs = {
     "client": {
-        "jwks": {
-            "keys": [
-                {
-                    "p": "5s7foUOyZo7mvEqiffQE5s_fiUk23MhbERH66hM2Qw2Y92QQ9oi608NDPCDePSCH3uWuSFQYclyXs0FI7FVcx1SZVSGhO4FhTUXb9owZcCvHQRVXXw-9-tL_iCEJ3EAnliLlf33938EUa3FLq437yCUUCi8JSRndvrHV7vWdkJU",
-                    "kty": "RSA",
-                    "q": "ulArhipYUy0aC4EMt07kIS_TFjdAzHcRlrdldSzuje8F2r0M1NW8P7AJwnXQXPDuxIUx3DAALxYr620lcPBfi_MbRkpa_fQx-Bs-SdUHVj2QbS2WCgp0Fs0uaqtIgCqWpaBddHc9maDDQbFIYEwuKXLy8cf_ADx3gle1_cpXAY8",
-                    "d": "HlKri17HNm_Fr0ayd4xg6pbtfwo0z2UGSttFdC6QZurlLVB4XVBxFytLcBd31-pmK1rPmX3ZJBcsSGZ63yNesIfd_1N8HwwUutPZFt7T755JwdZJ3HwRb4UcZfc9-nb0ohwgyBsazyINr2OwHqs9VT6Teh6ANhWIh4x-g4cu7WSJvq3LFyI7WaMWErvnoQJThAJXTZkR3ARwr_aPhFZTqtWix-OtO7vvk90g7rZDW0O7CgN-VAOwjZW6wTEV6efEJh84KoEBb7vDgVgfDcELhfAuBZYReiZNK3I7Rjd22oJfQfaBKnoCt_tBgU-GOjirclzUKACOjZN5JUkggjJ8HQ",
-                    "e": "AQAB",
-                    "use": "sig",
-                    "kid" : "sCekNgSWIauQ34klRhDGqfwpjc4",
-                    "qi": "XBvycHQcE2VKt4Y_K3o8unI6fm5VkbOzBq9MzD8OAJXV0OG8D3xpx_2LpMilR5_GPPB2iRLjVtZ_jiqsvsap4MuFHPPejwIHBGTHuZm095N5qw0biZFN3JApXVdgwNS0Rp_cOnd1xLGKqzJ8i0xaahk8rQDPkYCSBas1-Lwhyuk",
-                    "dp": "sMihZy6n9X_c4Tm1Tg3at0Ne7xNh7yeTAPcpnaJLfH5svIgrqfk-SDaWR_bQ4jcJesOngwTOmMGs_AK0LTiQ0KhOrXMNwLsvYPVyLlxOm6kcfBAxlMFE_VohmQ3dNJL6_zcJW2aQTpLf5g-oKuWchUdJGye9z_z86DPkLZx5LCU",
-                    "alg": "PS256",
-                    "dq": "gh-0BkRU4-LAKgC7rNtAoZ0RRJbafvM6KZV1Gt2Cz0Z9RER9TbjpfWGpr1Mxb3gmisKsDCjKOBi4G_ljCPoZAVmNVw5fdrayn6IHYvGR6j2dPWN1QxYB9lrfbEisnjcgeBUEsG8HauDI_nyfHAKYywIpg4w3IScaIMK5rMNA-Sk",
-                    "n": "p_qWXsObfddXzR0F7G9dQKShmWc0MgaX1pLTxNbjQ1YMqdCrKOH2iQxLEvFhp3rsDenXN5FaF7OURZuDsomkUD_Yr6dw-lL7DbL8LLRQPzvk3g9sDKK5MvuCFZwMXwPt-eSEIfiC1Z34shNFDAGwGQNAKe-VSghB-qJQvEu_DWDl4kKve78QgP3-Wr0_sILBT7-BSBse_4fvj6CbYhIDHfN0ELPJpZMSn6_QuKjTYTGz_4wBwM4FWcFuS36FJyGWC3Wv6zRdkbBLRzxigFrvkYfOENA-GXzOVXU7ZVNIPPAxXJRUQwc96wh40D4bnxvcQi46GP_Wb-ZpxHhThTdYOw"
-                },
-                {
-                    "p": "50xT6tw5taUYo-l94oqC0C4WjE7s4hftLcYwXSjhKz_ym8eok1-OwgczSZ3xaw3BhFGy7xo9zIsFoIBqyHhn8iq2BOTA_WVebwiZSy42hD0nCHLX23zXlZRoJCFFAay2cv6OlErHoh8V9-1kROezkDZhy9n1Lo1X3O17REmoff0",
-                    "kty": "RSA",
-                    "q": "zcQRwflaMMK76ncW7feNBCHsOJUJJlSBJ_VnHitauHGN9c1SwdtbHyHPi-GxqKdrHhhMZ40t4SB7Y9KIHARB4TprE2Y5Kp23RE0K_lbyypSGhxapd1rHchtt3X519Mh3azDoEMswbiBCe_Dqfjh4aZFlLcYiplFU2EYF_3ByY_0",
-                    "d": "E-iBB8S_VnQywuSm8531oWnfjqFVP90e6DmLlvP-12BD1uQe9IYfRnSSWxv5aO2rN6mn6YqCBQgGyoS8wJxXBXUS9dax7YhOqWnHqb4ZLvjeNzWSACTe5JRwSNXIP17rjTU_Lsl6u_brsJVZ5I_i3SG8YAGpQ_n6S0YapZagfuWVy5spwgkYo4MuvxJbicRHrL5FE2fQc7uMG6ebyovMDCHHR9E-R7LcfrQAb45uhct6j8HN1NHZXLmy716cRHLmh7dnznzXxeO-NU2CvpOpst0mJwR9QsEtBmrNkrfH2GgA_rD4FhwEeTYn_w_-aOpHLGXIEA78LTW-c10nJrJmoQ",
-                    "e": "AQAB",
-                    "use": "enc",
-                    "kid": "qGSq26Iezcl8OuSDV89JiKAYDuY",
-                    "qi": "5Dd6BYsXvbnWltPubMwMLKSQ5RLbFnGzeC1CnPIQ7U2LILNooqtSkbziesIC7s1QPFHd1vidLPGW21FyyflasmBOJ9_tKxNuJK-IGIqFcgHoz0KQLnjm_WOMgowUn-_td6iHGGBsJT7apiI7Qsz_CGVnXZn_mK-DGcAN_635T6o",
-                    "alg": "RSA-OAEP",
-                    "dp": "GcVRXEupSmnYsvqjAgi4xoU8EeoBTrenv3_jh520aOM5Hs5CJBlziH7Q4hTs_yaLNzj7HNTpqc6bk-R7AVcZDcxgd28daZ5PxUNKASxm-pjtrm1NS7E_O_VLHStvyt35fhqKvE8QqymXgwY6M8s1II5Omy3vuX4aGg2DvHoQgek",
-                    "dq": "XmXfB7BPkiMkdrJf0JhLF2RArMyiv_Tws9Y_knWtTwS5bdTebJUnvqaSQsgt6wOzfsEC_Famf6uZL_h7_O5vEtbsHKA_BbAJTcpSitB03j85YGwjHuCEs3Kl-oFzt_Ln5kMvk9TDySH_nkCuM23QwA2170QAzXBujjHBuqhpsjk",
-                    "n": "uelFrqWTaddV1c96pcme8lbaJ5MAHdoqEkFcc9Z7ICQC4y5k2QIbvnsIO3h301FZtejI47Vsd7ikrg3VvDEDM9_qODxl_--E6g58AatVLYalUcZo04dxWjilEj3Cd8Mdsoz2vGUGi7Jc7UnZHJckcRo-83P46P3SOtEDkEdtH6wVQzWAYBP2CkuOPZphnt9d3trtznjDdt0TPc54RUNaPjn_4CURH9Dc6bQ60TuObT2Ss2dbkJLvWcKEsPi3OGt8FxCW8HagokFnf8y0xIBagtghdCcWjbvEMDsfOe8lcp7H4u6cluJ9bu9w6_MvIfKi16Sz8n9vws2Gei8ivudaCQ"
-
-                }
-            ]
-        }
+        "jwks": _client1_jwks
     },
     "client2": {
-        "jwks": {
-            "keys": [
-                {
-                    "p": "2WDyHJULlpEaty8SXti1ozdS2X1WZpSESX3HzkPVrT4g7on0CuhjIZ-R3Stji9Ztsee5vw9ABBZ4lRSdeQ_6N1AmjYqHWmNMSFuPnKHvyPB69ifXRacg3VHT9_dKpTP-Z5FuQs0er2sodC98W1PzR6qcnzbDRW6t_V2yJp9DZJc",
-                    "kty": "RSA",
-                    "q": "0A34bJlvbw1LnfnsQv_8DSizjil6KYQ2mc-4U1KjsT2gHkLcMNz4_LXH1qFbOj44DV93vDWWiyG-go0bJy2tl9bqlk1DxE-quavKM9VL76Qsg5mX49YKwB5iTceS1w0c2HPF-AZ0n1kT82jKUX214eojT3F9B1Hbeg10XauSr4k",
-                    "d": "CkJ-i9BSV7bkGBcZq6rsfvJYigHUYNt0jDR9O7ohe5utsIOkWzzn7rF3OXqRniiZ-TZnHuhgSfvZgNA08Hc77Dz_AEO3xZT6Dt6ewtrwRYZHlhEGenhL7mFUGbK0TQqRzbCVFJTeEtCPWJhgX0iIJ3QRAbQ_8XTjxsOom0vwwCS7uB_pIhZg4Ue9Uh-6fXq2oOz1-S7tOO9Ew_BtyYVo-du_x3l1IG0HptlbvP-aAWZtvxlCEnIZ0ps7XP9llHzFrgPzAuh8blw6fhTWjrSrwZ2gl3dyxL5DaLmRurU2O0P5S5apgeOJvug0S9lkb-jlr3dir7RBrKTS6JYhX0kmoQ",
-                    "e": "AQAB",
-                    "use" : "sig",
-                    "kid" : "5dBuoFxTMIrwWd9hzUMVgF2jMbk",
-                    "qi": "0fzzLITfeXce0isfQ9LrwvZLc1cVLByKdNz-4k6K0A8qc8JJsuLvGWr6cjePQTXwdt0bLrNA2xixql7HBrQa-soYEYBtXUOKY-a-WbI9gaNlG0sjtLN1TaritGwn2XzohdkjBX_dTd8x3aTfW_w3IqVN00mg-mE671OJEAZaLfw",
-                    "dp": "r2I0dTMbomN4douX-sZF5mXghnFFoIX7JYBCEP1SDPCviUXsjFBqito_yX4UVuKupncbujcHo0SuDToQw3hMnQwhztkR06-CAG8_M1TELg84ZhpG6X-qWGaI6uuuYhPNEqqXl3X_Z_DBNtyJLPZStmPE8gAxFHf0ERPjhJ3Ctgk",
-                    "alg": "PS256",
-                    "dq": "ZfMSkpS1KCPJtAWtoj8x0XjqU3U7qXBiGQjSd_H8yHM8LNfycfc2Aw9Id4Hl5Cps6RCo6Y8Qz-ifI_XlIlOdxtPHbBM8a8vmCsmFcdTJOwqlzW7MIRbXecDpxtdOuxZv1hkVHy56o0LRJetpiHkjUSqcVudzrsyL0ckaBnR2kpE",
-                    "n": "sKqhlaZIYGcIaBFWapVVR5-lWrG7ksFFhrqMMGLSg1-78Y-YnCIdB8MODdeU96yajlonXoluELC7CJcN5riX-iSKG1tYM3BNvqqvycQ2YQd5OtQMEsBDLFfgdK_SyF2NIjH12ru0pRqlivHwpC49Era3EoOs-opfwhSsqLr9_OCxsmwq4TsNqtFR7CAri9O7HN6laHS1wQ2ZqiI2-UuqCXUE8gZ8vQekcjTh1MWzt9rTsatwfK1pvB69yOs--M18vfp5dUmpuEF1EWUoR49KsYkWR_YbG5M1hHTbWvoRVunIZg8KTNotbzaRCC3xHEburw3VCU6EgXqBEI0Fh_INzw"
-                },
-                {
-                    "p": "5qAvJ6_i56WrYhklfNZ_f3zlDWouYg0cnzA-rBjhI5SfJPjpHQc_vnuZ9Ge3Tv2FhL_cn6MywjDqCQy34vAzfLDAsk5dypygDmpaPVB2j0MyhaOGkCnlUcwy05qhNRqMRJLyX-JBSdvNJ4W4qjaaAhecif3gbDYYLkgJdXCG9e0",
-                    "kty": "RSA",
-                    "q": "32mUbosEEF9bCYWVM3BUYLD4AiZ3IgAHcRhZNBEWgAFJR6QZJ08HgSGDG_7Ur198gv8Aqod4B08qZQhSIlPL5E8Ce7KVE4t89_58gnd769QHcH-acK4mHFzVQD2p2A-kuJb_C7ply-vp8-4CluKnEhCZOSUcjmDWnBa7bZrXhSU",
-                    "d": "g4sBNZGJJaxLmyfDwDvZn5CTVd5Dd2va3wy8TNQxBW9U_OKEM9GUGClTXYEkJyI1dbq_4HXw2d92o56fVA4A5FuoSAFCuaa0XfNf-b_yzBmvCEKOMJZLM4_IHvlP5j_U5G-iyuW4AVJKNEVqRmr9JjIwyaV6r9xgJUXplzpaNon2ZIlImZURjfYsWi5noqAhRmmGXvsRMOzlgDJOoazqASynY-H-L3gXwsWXLUKmpvvb1mhnims3MPtA4xbAKVL91flv2hMr5RIKlF-cCuYc2pUGlRd2VRcDHbhVWm__GXnkR34slxW7Tdo_46XT3Q460HNLDN5GLxvN-6eohC5t",
-                    "e": "AQAB",
-                    "use": "enc",
-                    "kid": "_R4CIMA-v0c1SRr9eHzVC-PWj8Y",
-                    "n": "yUSmfxrRo3JIL4Ivvx_M-_fWiU-V63lw4S1TLr0zguI4ZBcCC8ivg8V7O-VWGd69W21V0afYmBs0rVOoz30G4VChu84INM3izd-6us3GcNaIUyXMaXv75v4Cuj0zcdoaR0AGKflJAwuLTDZlkBpqFT6QDZ90kCOxxjAu0I3maL_4X6XeMm9StHbK9lsmHU7jXhk980qQEextjbbsA3xjXsIVmi7xigMG2CTrmegEP233JuGJOi57R7gVpi0xR66firAw7OXY4fl7R1QKzX5iibDDQqYOkxGk5MPP0dKPmxDezQvlLC8Cynh7x9QD_bagPIdtJlijw4HCHuehfVCsQQ",
-                    "qi": "ZW4YF0QlIQeJQqMRJAvGeBwqEXvDl99bH5x9RmRx3oLxsKMjf6ltKwTtiiHrCwgsxVr9sb2Pe_ow3vew89Lp24pkBqHn7PL8vcis4P4NGKJ4g39h0j6FoDI0Vz9anaezaWinNYEhmPqqDrHEf3jlueKjarr9maaTIg9FhbFHUtA",
-                    "dp": "1OzRfIfEK3DmcXScCs0S-8Z4x1DgMADBCywEwOlbe3ktEXqJ5xYZQSlms6LKODCTBEQLUovfQjDc8qv-XpS8RIP_9N-rcnP2xjhkxjUysQQucfnPM-yqX0HzLzCVY6z2Eh3Fjsca1jEMEVBBdU1iFUptaW2utNmgq6IwsW_J-uU",
-                    "alg": "RSA-OAEP",
-                    "dq": "xEizg0eZ43STvFLj2hSn3We-Dc2Tv4h9AU0eGlOlDAOVSV8QRmv1sOsrkK4cWJQxBbpa8Hgi6XERU0CzQLuUmFseWGV2-nwD6LJq3Al0E6buflVt7-_hRev94_oJPe3Ij_EB1WEHzNjRbGHBXqV1mbaBmCZV53WHOA300ABJuA0",
-                }
-            ]
-        }
+        "jwks": _client2_jwks
     },
-    "mtls": {
-        "cert": "-----BEGIN CERTIFICATE-----\nMIIFODCCBCCgAwIBAgIEWcdQBTANBgkqhkiG9w0BAQsFADBTMQswCQYDVQQGEwJH\nQjEUMBIGA1UEChMLT3BlbkJhbmtpbmcxLjAsBgNVBAMTJU9wZW5CYW5raW5nIFBy\nZS1Qcm9kdWN0aW9uIElzc3VpbmcgQ0EwHhcNMjUwNjIzMDYxNTUyWhcNMjYwNzIz\nMDY0NTUyWjBhMQswCQYDVQQGEwJHQjEUMBIGA1UEChMLT3BlbkJhbmtpbmcxGzAZ\nBgNVBAsTEjAwMTU4MDAwMDFIUVFyWkFBWDEfMB0GA1UEAxMWb1E0S29hYXZwT3Vv\nRTdydlFzWkVPVjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAK8lxyUC\niB4waJKu08q4UVhaq9jbxV7THYzVqJQupjjo4eIXSSZajgjUpdLZ+blo/+xPZpzF\nz1bZwKj/Deg9Natagm/XqXweNVX4Sdn5CSVX+7xXI5LvDSenp51rRx3dYi/J6XLl\ndFLi+GG581/MisqToJau6/+ELu/HuZQ08Vy1iiXQ23f43T5XnwjwlB12LroRPV8J\nZ+bwNbHZQgMxIEQl2ePMdNFHpI/7RcheVactG5pCQd4nwdzAwCaUp8k5PPqkGQTw\nU+SdKLq0JChTnqH2sN4jHrAE0pxSFpgSE4M5/q21cEih2cp8dA1BhTc0cwY9wmYK\n1uyFBKc/lAvQBckCAwEAAaOCAgQwggIAMA4GA1UdDwEB/wQEAwIHgDAgBgNVHSUB\nAf8EFjAUBggrBgEFBQcDAQYIKwYBBQUHAwIwgeAGA1UdIASB2DCB1TCB0gYLKwYB\nBAGodYEGAWQwgcIwKgYIKwYBBQUHAgEWHmh0dHA6Ly9vYi50cnVzdGlzLmNvbS9w\nb2xpY2llczCBkwYIKwYBBQUHAgIwgYYMgYNVc2Ugb2YgdGhpcyBDZXJ0aWZpY2F0\nZSBjb25zdGl0dXRlcyBhY2NlcHRhbmNlIG9mIHRoZSBPcGVuQmFua2luZyBSb290\nIENBIENlcnRpZmljYXRpb24gUG9saWNpZXMgYW5kIENlcnRpZmljYXRlIFByYWN0\naWNlIFN0YXRlbWVudDBtBggrBgEFBQcBAQRhMF8wJgYIKwYBBQUHMAGGGmh0dHA6\nLy9vYi50cnVzdGlzLmNvbS9vY3NwMDUGCCsGAQUFBzAChilodHRwOi8vb2IudHJ1\nc3Rpcy5jb20vb2JfcHBfaXNzdWluZ2NhLmNydDA6BgNVHR8EMzAxMC+gLaArhilo\ndHRwOi8vb2IudHJ1c3Rpcy5jb20vb2JfcHBfaXNzdWluZ2NhLmNybDAfBgNVHSME\nGDAWgBRQc5HGIXLTd/T+ABIGgVx5eW4/UDAdBgNVHQ4EFgQUg6WnqlOqTU3MuElI\n9Mb+jt+2U+AwDQYJKoZIhvcNAQELBQADggEBAJO5Zfjr7KxYKXgSS7POW6AQGLL4\nqjp1dGhWd3SmM+r5t6ZrKfbb7BsQq+SK965tFpw1pYuAo8lmLKzTcGZ5f9UbHu5C\nOIM6ZkqPHIEiLccIIQN0/YpTtHvwI6A9BEpMiA/tiDvqexZnQY6pR85OI2MByysu\nNUVGdFJ0QJjdF9UQjNtswz+maCd63/wU2GtnheOvC4NS4KGd9O5UGJzIQI7Xtd6u\nGm+ToJGIouNYwlmvtutouWSBKfdcEhgmyTCxSMTzNXXzglLW/wCuLlXlgTG02p3k\neAs0E+OXdA8XaQDTP0880TmlnCvh/EWkjOYuaeh8psVW9NCv1s1w+GzD72g=\n-----END CERTIFICATE-----",
-        "key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCvJcclAogeMGiS\nrtPKuFFYWqvY28Ve0x2M1aiULqY46OHiF0kmWo4I1KXS2fm5aP/sT2acxc9W2cCo\n/w3oPTWrWoJv16l8HjVV+EnZ+QklV/u8VyOS7w0np6eda0cd3WIvyely5XRS4vhh\nufNfzIrKk6CWruv/hC7vx7mUNPFctYol0Nt3+N0+V58I8JQddi66ET1fCWfm8DWx\n2UIDMSBEJdnjzHTRR6SP+0XIXlWnLRuaQkHeJ8HcwMAmlKfJOTz6pBkE8FPknSi6\ntCQoU56h9rDeIx6wBNKcUhaYEhODOf6ttXBIodnKfHQNQYU3NHMGPcJmCtbshQSn\nP5QL0AXJAgMBAAECggEADPtOVuJop2AsKA8YOJLPyK4zxYeIif441vrxG0aX4Gj2\ncRULwXF9zI7CWa35UfJD4caC0wTgWM4b9wqsg7WhuDklqNeBwubUSjJ0etj4AhIS\n4QNOajIYtgM5q7PLWh3SDLu492Clbg1PnqKzNLsK4Hfvs6t0Z4RrHC+gBCmmaBoX\nIYg1PccC65MnSSziMJsHbE7VU7LIRq5ZYvxSnXq4t7XYyC1ZkOFyVGP9CxgOxfkF\nOstc/ey6RabzG6lOwoVFA/LnLlo/frIUJDG2MTyhr7tBktbwYADH553bsrQt1nu/\n8+m4PF8YJmPZU1wDqSV2H242fXNS85nUg/Psaxp5OQKBgQDbsloFeMmlqsn97TaM\nfPE7ataWxvdaMuIAUESOiHFxSpra8EHpt/DVP30jaGgxvESxRj20fshGtQLnlRyv\nAKye43FzLsnn0r0XVWmyDjfvnxL0Oadud8EMaJaRyL9Xu5s7TQmcymO61sK7YNSp\nDu5EltxQySYWo1R4E4aRaBQGhQKBgQDMFubQM0scxdp56DOYFXQcUfuBs3GGSZdB\nq2EFfoaLTJJSZ1jOYyXJLuee7oPc7SiYgUHvW1RnPX7usn2q85rzWdgFFPmAcS7W\n9gtrixWMQvOwhBjcXFt+t5r8LTfhMIuVQTmxLehLaDJsiNVd9DK4XKdbcWyYf/Vi\njwJTWe5PdQKBgQCNpkXSh1mEPkT0OtDT7e7ff3gSSQDMoEgFKbu6JpD2GcMUbJoi\n5h0acU/u129uudOUdRRt3tykcisIQ6T11Lp3y2+nc0Bs/vw6IjD+w5ofHnJrEw03\n9XB73qdOIZ/1IhnpNzd+ZyO8IKH3jGwxAFZx1M8CK18qc26P6Q73i6J1vQKBgQC6\n7kMM8d5bhVE+FZOkOgo2olSmELDrmd4D1TAxcxlS35iqB2TM7P1AD0kxRi/bHBHx\n1XqJ/PIK+cWYZj46ZZRITsNQrEx2+7Q2Sfhd0W+0H+LKi8OlmqZnI06+qcAj7236\nEFsCURUSdGazCIW935zRRnQ3imU4LQOZ+Xjc1WM0vQKBgBsnGvoa4WLHsSOjJ6A7\ne3OuLT48HDpWoitFAf0RqetLgotJpt8m8nn/8rGq5OP+QWe2oTuuSP5JKoRTjEDS\n7X0tjoNWHuQe4fZ2TzQgTglxNjBeHACIw3kl8Y0mtVZruOcHqqQV/Sd3+ETJLt2J\nlmPFECKon4wudgZNdV4Ff4xV\n-----END PRIVATE KEY-----"
-    },
-    "mtls2": {
-        "cert": "-----BEGIN CERTIFICATE-----\nMIIFODCCBCCgAwIBAgIEWccwOzANBgkqhkiG9w0BAQsFADBTMQswCQYDVQQGEwJH\nQjEUMBIGA1UEChMLT3BlbkJhbmtpbmcxLjAsBgNVBAMTJU9wZW5CYW5raW5nIFBy\nZS1Qcm9kdWN0aW9uIElzc3VpbmcgQ0EwHhcNMjUwMTAzMDc0MDM1WhcNMjYwMjAz\nMDgxMDM1WjBhMQswCQYDVQQGEwJHQjEUMBIGA1UEChMLT3BlbkJhbmtpbmcxGzAZ\nBgNVBAsTEjAwMTU4MDAwMDFIUVFyWkFBWDEfMB0GA1UEAxMWakZRdVE0ZVFiTkNN\nU3FkQ29nMjFuRjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANQQ+cTI\n0GZ9jxbJHcwYmHF1gUMewVx7V6LkwVNR/t4SQ2n86yKzZIFaBH4zL0S9moyzyUSD\nq0AjwWDdaBbR+FL6Rkde1oANJdMeuN0RyG8GZB3Mgq92wIoF0E15KXFJzO5WOLVC\n9Lmk3iNXT+KuNoxAtnuZjbiQk7L+2ynMR/Fj8kJQFXvGkDiTEbIO0bawOMwMjO0K\n+9qie28AV4FWsD4DrpaU3bZKzwwgDMiO8JTp/gXExZHBQt/qi+/hhupU8UhAXdUI\n3D5htT5sT/cbMoGuIitslr/Cb160FtUgjJyx4lhlpqGWdRKqn7fUEG7cXwSlUwlI\n/mgIRWpwiW6V62ECAwEAAaOCAgQwggIAMA4GA1UdDwEB/wQEAwIHgDAgBgNVHSUB\nAf8EFjAUBggrBgEFBQcDAQYIKwYBBQUHAwIwgeAGA1UdIASB2DCB1TCB0gYLKwYB\nBAGodYEGAWQwgcIwKgYIKwYBBQUHAgEWHmh0dHA6Ly9vYi50cnVzdGlzLmNvbS9w\nb2xpY2llczCBkwYIKwYBBQUHAgIwgYYMgYNVc2Ugb2YgdGhpcyBDZXJ0aWZpY2F0\nZSBjb25zdGl0dXRlcyBhY2NlcHRhbmNlIG9mIHRoZSBPcGVuQmFua2luZyBSb290\nIENBIENlcnRpZmljYXRpb24gUG9saWNpZXMgYW5kIENlcnRpZmljYXRlIFByYWN0\naWNlIFN0YXRlbWVudDBtBggrBgEFBQcBAQRhMF8wJgYIKwYBBQUHMAGGGmh0dHA6\nLy9vYi50cnVzdGlzLmNvbS9vY3NwMDUGCCsGAQUFBzAChilodHRwOi8vb2IudHJ1\nc3Rpcy5jb20vb2JfcHBfaXNzdWluZ2NhLmNydDA6BgNVHR8EMzAxMC+gLaArhilo\ndHRwOi8vb2IudHJ1c3Rpcy5jb20vb2JfcHBfaXNzdWluZ2NhLmNybDAfBgNVHSME\nGDAWgBRQc5HGIXLTd/T+ABIGgVx5eW4/UDAdBgNVHQ4EFgQUYQ3RP+pU/TgsDgEn\nJExVej/zYWkwDQYJKoZIhvcNAQELBQADggEBALH6WYDbheHqoR4ikEGj5CVV64XO\nZGjjB5Yiw2jnt6vN11dNzRm0FnM2n4AxHHWBg9oQhPMRGBZrh/0CLzyRa+RSnJ4A\niRTg+Pwg1POQx/mhJPP9I+Xsb+eTsZA0K4pUmlNLzHlm3vRj0Z4rcSomGBRWymC1\nkQ3eV8mAZZuu09+sv5DfQ/7bv7cH5SsUsw3xbNQWtkYUoEXP9MkUy2rc0VE+oPud\njpNlTkmBY/WLNnQUiB4zV4ulUYYpOy8YQTaZSbOjBvbnhYS32Jwdk1aXzu9Fc8d5\nRhsKOwWHbDYWUM6eTF9MUumcry7yWxxlFlQboCpdLy2U3RMbBE+F7GdNXnc=\n-----END CERTIFICATE-----",
-        "key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDUEPnEyNBmfY8W\nyR3MGJhxdYFDHsFce1ei5MFTUf7eEkNp/Osis2SBWgR+My9EvZqMs8lEg6tAI8Fg\n3WgW0fhS+kZHXtaADSXTHrjdEchvBmQdzIKvdsCKBdBNeSlxSczuVji1QvS5pN4j\nV0/irjaMQLZ7mY24kJOy/tspzEfxY/JCUBV7xpA4kxGyDtG2sDjMDIztCvvaontv\nAFeBVrA+A66WlN22Ss8MIAzIjvCU6f4FxMWRwULf6ovv4YbqVPFIQF3VCNw+YbU+\nbE/3GzKBriIrbJa/wm9etBbVIIycseJYZaahlnUSqp+31BBu3F8EpVMJSP5oCEVq\ncIlulethAgMBAAECggEAUi4l7Kl5gU5FBip3/qDFaqqDpjQj8KfnxTtq49QRtZNU\nRp15rZ/hYfM1bIZ/Wd80JjSB2ahA1AFHLjd+3+EMn3NXis7oxwTRVKhCMYFzr/rF\nD3syZbbaVGJ+X5eFhN55qR8GqM/CsLKAVye90HV8tAtb7DgMYKq+Yg47dk4wzw0b\n8JlPIED2zQ6s/Vc2NlK6UNYK2olAF9w49Y8o6xQixugzgXIRKWz8JgzhCYfMt1vj\nKfiCTg59dg+nYernVp7c0G89E+gVwK+ZSGyGiDyvyC9O7N13yhZeMK4NHHnlLzae\nPjUksRkAGuKw9IpQOYLgX/heOrNQS/vWzNJ97eEkJQKBgQD/+lIQZOFGPsjlNItR\npYVr9+zv6Qx27MRbSp2pL/7jK0Oi2x1OShsmp2ZKGDEbfsNuvEBmWmNZre7H9EuQ\nTvzDDDiXGflD/f+fKBAokWxbFDR+TNunPxEF5ktfCyvhCb08dhAFuIuVulTlUtWL\ndYL2S7TQPVmIVqS2O1QB7wFDUwKBgQDUFa5KV8ynL0TgVhQ2VkkvRgsS1YZR34p5\nWgosoIAIEhXKqOoIKkWi5khe19TDUveC66fziWjSf/DDjbtY4X+t8bh46YSGfjMn\niRTjpG2nh3NCJx4Wm3QiH8YXJlkrqJv9invnL2dLFJwgwP20kCoGQ2E+K/i0W+DT\nJXZF/sdT+wKBgQDpJ+qDwD9pKlr2WwvjTG7gzyxjwdR2pmab+LTunCcAaDHtLsPc\nwadFaAjFyI9CSg5c2N+X2xDPaJwsSRpi0W9tgb4x85iWE883+tfs+7jEpPzDZeJU\nzh8FTqSsZ5KKIcLaRXeGnneV4+jcEL0tj9W/3WlOm/LnOnRBAH0eXcK6vQKBgBNA\naJLNB4HBk7H9flY0XO5SoFy0Tz4NWaeMWdIVO6n/4kSEMsJM/Ac+eiFJ3EFivZ7/\nvz4nIgHBpVxK+E+oIIvsnj8zi1keCYy0L9Y+LcoATKEbpeqNb+xNEBE35O5GnupT\n8M1aizjQhR+gBSen0njBEwmuuiO9F1pzUxold3iTAoGBAK9f8NNVynGTwUp9xUJE\nZJjw0NpRoFTSCDiDZVrtqR3jp0c5IhTGySNwsB19f6h+7X9udxzUKKICkoCHd7Ty\nDeMPyWsQ6VlUMuLIPZDRAckdotaBb8AEZ/GVy3qWym0f7kEJUGa7NDVWuoKni/18\ni5aWpoZg+ahZJfEXKWLPz1YY\n-----END PRIVATE KEY-----"
-    }
+    "mtls": _mtls1,
+    "mtls2": _mtls2
 }
