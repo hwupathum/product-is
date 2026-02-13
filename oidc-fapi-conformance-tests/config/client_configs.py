@@ -5,6 +5,7 @@ client_configs = {
                 {
                     "kty": "RSA",
                     "use": "sig",
+                    "alg": "PS256",
                     "d": "Ada0Zp9mRSBOgGGwq9wnxzXFkFpEKLowbEuC800Z65MdJgVBcf0OZLvrGNOSYRJHZFZizkzoUQO0rFN5dWVbQiT_xB7VHgTJyvOrmi2aQFBkcczlt3fDRq8_0yb9ZGdny-tmm5gYHtkhuGAX70E4pUN9BLkpgIFHCrYMJU3QAIzrUfqONeqx5DrAOChYqgmoCLFfDjKR3rSAMP3fjoXfDwFxixcG3rrEl-4muoYWLDg84Dnmr0pXQYvtCBc8_0YIpjtUfqr1hMPdeYlpQTRrc_mtr2I4dN3YdvlWKPW53dCP84D2SvxbngwL8z1Tk8PYmci2v-AXGj24RDawAPNf6Q",
                     "n": "w6vk9Y1ZhplAYpdJfRY07-EbBU5R3YBHt1AXaaaJp9cbmvVnvQXrbx-c02MaSZGcSzv8aSctuKC0OEwpog4Vfq94rtL0-ikfTN9C3hCkOAR04cTjdw9ZRAj_Bpf4R_zSD1RPiU9CUXiGPoUEZFM8_6LUXaEipH3CNsRyCbtXhVhJQh8kO8sOeSDO6QwyQzhYL3AMCjf5PJkTnBqLPDm2BldBNjfzxp-tL1xthHGftc5vSY_cy447tWjnqhBRX-Ja3hzd4TNuMGZViu-VKVyoaG8Oo42hUVyoUqCUMAVNsFehnhmaR004xNMRAUmNOaKmmZQDWDrKHDtPC9FDvwXUQw",
                     "e": "AQAB",
@@ -36,6 +37,7 @@ client_configs = {
                 {
                     "kty": "RSA",
                     "use": "sig",
+                    "alg": "PS256",
                     "d": "Ada0Zp9mRSBOgGGwq9wnxzXFkFpEKLowbEuC800Z65MdJgVBcf0OZLvrGNOSYRJHZFZizkzoUQO0rFN5dWVbQiT_xB7VHgTJyvOrmi2aQFBkcczlt3fDRq8_0yb9ZGdny-tmm5gYHtkhuGAX70E4pUN9BLkpgIFHCrYMJU3QAIzrUfqONeqx5DrAOChYqgmoCLFfDjKR3rSAMP3fjoXfDwFxixcG3rrEl-4muoYWLDg84Dnmr0pXQYvtCBc8_0YIpjtUfqr1hMPdeYlpQTRrc_mtr2I4dN3YdvlWKPW53dCP84D2SvxbngwL8z1Tk8PYmci2v-AXGj24RDawAPNf6Q",
                     "n": "w6vk9Y1ZhplAYpdJfRY07-EbBU5R3YBHt1AXaaaJp9cbmvVnvQXrbx-c02MaSZGcSzv8aSctuKC0OEwpog4Vfq94rtL0-ikfTN9C3hCkOAR04cTjdw9ZRAj_Bpf4R_zSD1RPiU9CUXiGPoUEZFM8_6LUXaEipH3CNsRyCbtXhVhJQh8kO8sOeSDO6QwyQzhYL3AMCjf5PJkTnBqLPDm2BldBNjfzxp-tL1xthHGftc5vSY_cy447tWjnqhBRX-Ja3hzd4TNuMGZViu-VKVyoaG8Oo42hUVyoUqCUMAVNsFehnhmaR004xNMRAUmNOaKmmZQDWDrKHDtPC9FDvwXUQw",
                     "e": "AQAB",
