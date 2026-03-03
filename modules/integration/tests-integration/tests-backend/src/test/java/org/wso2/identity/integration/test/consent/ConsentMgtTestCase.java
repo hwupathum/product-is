@@ -21,6 +21,7 @@ package org.wso2.identity.integration.test.consent;
 import org.apache.http.HttpHeaders;
 import org.apache.wink.client.Resource;
 import org.apache.wink.client.RestClient;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.testng.Assert;
@@ -28,6 +29,10 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.wso2.identity.integration.common.utils.ISIntegrationTest;
+import org.apache.wink.client.ClientResponse;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.ws.rs.core.MediaType;
 
@@ -38,6 +43,7 @@ public class ConsentMgtTestCase extends ISIntegrationTest {
     public static final String CONSENT_ENDPOINT_SUFFIX = "/api/identity/consent-mgt/v1.0/consents";
     private String isServerBackendUrl;
     private String consentEndpoint;
+    private Long purposeId;
 
     @BeforeClass(alwaysRun = true)
     public void testInit() throws Exception {
@@ -83,12 +89,61 @@ public class ConsentMgtTestCase extends ISIntegrationTest {
         String group = "SIGNUP";
         String groupType = "SYSTEM";
         JSONObject response = addPurpose(name, description, group, groupType);
+        purposeId = (Long) response.get("purposeId");
 
         Assert.assertEquals(response.get("purpose"), name);
         Assert.assertEquals(response.get("description"), description);
         Assert.assertEquals(response.get("group"), group);
         Assert.assertEquals(response.get("groupType"), groupType);
         Assert.assertNotNull(response.get("piiCategories"));
+        Assert.assertEquals(response.get("version"), 1L);
+    }
+
+    @Test(alwaysRun = true, groups = "wso2.is", description = "Add Purpose Version test", dependsOnMethods = {"testAddPurpose"})
+    public void testAddPurposeVersion() {
+
+        String version1Req = "{\"description\": \"Initial version\"}";
+        JSONObject v1Resp = addPurposeVersion(purposeId, version1Req);
+        Assert.assertEquals(v1Resp.get("version"), 2L, "Version 2 should be auto-assigned");
+
+        // Response now includes "version": 2 (latest)
+        JSONObject getResponse = getPurpose(purposeId);
+        Assert.assertEquals(getResponse.get("version"), 2L);
+
+        // Add version 5
+        String version5Req = "{\"version\": 5, \"description\": \"Custom jump\"}";
+        JSONObject v5Resp = addPurposeVersion(purposeId, version5Req);
+        Assert.assertEquals(v5Resp.get("version"), 5L);
+
+        // Response now includes "version": 5 (latest)
+        getResponse = getPurpose(purposeId);
+        Assert.assertEquals(getResponse.get("version"), 5L);
+
+        // Add version 6
+        String version6Req = "{}";
+        JSONObject v6Resp = addPurposeVersion(purposeId, version6Req);
+        Assert.assertEquals(v6Resp.get("version"), 6L);
+
+        // Response now includes "version": 6 (latest)
+        getResponse = getPurpose(purposeId);
+        Assert.assertEquals(getResponse.get("version"), 6L);
+
+        // Add version 5 again -> 409 Conflict
+        ClientResponse conflictResponse = addPurposeVersionWithResponse(purposeId, version5Req);
+        Assert.assertEquals(conflictResponse.getStatusCode(), 409);
+
+        // Get all versions
+        JSONArray versions = getPurposeVersions(purposeId);
+        Assert.assertEquals(versions.size(), 4);
+
+        List<Long> versionNumbers = new ArrayList<>();
+        for (Object obj : versions) {
+            versionNumbers.add((Long) ((JSONObject) obj).get("version"));
+        }
+        Assert.assertTrue(versionNumbers.contains(1L));
+        Assert.assertTrue(versionNumbers.contains(2L));
+        Assert.assertTrue(versionNumbers.contains(5L));
+        Assert.assertTrue(versionNumbers.contains(6L));
     }
 
     @Test(alwaysRun = true, groups = "wso2.is", description = "Add Receipt test", dependsOnMethods = {"testAddPurpose"})
@@ -221,5 +276,47 @@ public class ConsentMgtTestCase extends ISIntegrationTest {
                 post(String.class, addReceiptString);
 
         return (JSONObject) JSONValue.parse(response);
+    }
+
+    private JSONObject getPurpose(Long purposeId) {
+
+        RestClient restClient = new RestClient();
+        Resource resource = restClient.resource(consentEndpoint + "/purposes/" + purposeId);
+        String response = resource.
+                accept(MediaType.APPLICATION_JSON).
+                header(HttpHeaders.AUTHORIZATION, getBasicAuthHeader(userInfo)).
+                get(String.class);
+
+        return (JSONObject) JSONValue.parse(response);
+    }
+
+    private JSONObject addPurposeVersion(Long purposeId, String payload) {
+
+        ClientResponse response = addPurposeVersionWithResponse(purposeId, payload);
+        Assert.assertEquals(response.getStatusCode(), 201);
+        return (JSONObject) JSONValue.parse(response.getEntity(String.class));
+    }
+
+    private ClientResponse addPurposeVersionWithResponse(Long purposeId, String payload) {
+
+        RestClient restClient = new RestClient();
+        Resource resource = restClient.resource(consentEndpoint + "/purposes/" + purposeId + "/versions");
+        return resource.
+                contentType(MediaType.APPLICATION_JSON_TYPE).
+                accept(MediaType.APPLICATION_JSON).
+                header(HttpHeaders.AUTHORIZATION, getBasicAuthHeader(userInfo)).
+                post(payload);
+    }
+
+    private JSONArray getPurposeVersions(Long purposeId) {
+
+        RestClient restClient = new RestClient();
+        Resource resource = restClient.resource(consentEndpoint + "/purposes/" + purposeId + "/versions");
+        String response = resource.
+                accept(MediaType.APPLICATION_JSON).
+                header(HttpHeaders.AUTHORIZATION, getBasicAuthHeader(userInfo)).
+                get(String.class);
+
+        return (JSONArray) JSONValue.parse(response);
     }
 }
