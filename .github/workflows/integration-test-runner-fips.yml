@@ -25,7 +25,7 @@ jobs:
       - name: Configure FIPS and repackage IS distribution
         working-directory: modules/distribution/target
         run: |
-          IS_ZIP=$(find . -maxdepth 1 -name "wso2is-*.zip" | head -1)
+          IS_ZIP=$(find . -maxdepth 1 -name "wso2is-*.zip" ! -name "*-src.zip" | head -1)
           IS_PACK=$(basename "$IS_ZIP" .zip)
           echo "Unzipping $IS_ZIP"
           unzip -q "$IS_ZIP"
