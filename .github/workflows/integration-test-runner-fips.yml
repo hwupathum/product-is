@@ -1,0 +1,93 @@
+name: Integration Test Runner FIPS (JDK 21)
+
+on:
+  workflow_dispatch:
+
+env:
+  MAVEN_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v4
+      - name: Set up Adopt JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: "adopt"
+      - name: Build IS pack without Integration Tests
+        run: |
+          mvn clean install --batch-mode -Dmaven.test.skip=true | tee mvn-build.log
+      - name: Add FIPS configuration to deployment.toml
+        run: |
+          IS_PACK=$(find modules/distribution/target -maxdepth 1 -type d -name "wso2is-*" | head -1)
+          echo "Adding FIPS configuration to $IS_PACK/repository/conf/deployment.toml"
+          cat >> "$IS_PACK/repository/conf/deployment.toml" << 'EOF'
+
+          [jce_provider]
+          provider_name = "BC"
+          EOF
+      - name: Run FIPS script
+        run: |
+          IS_PACK=$(find modules/distribution/target -maxdepth 1 -type d -name "wso2is-*" | head -1)
+          echo "Running fips.sh on $IS_PACK"
+          bash "$IS_PACK/bin/fips.sh"
+      - name: Repackage IS distribution with FIPS configuration
+        working-directory: modules/distribution/target
+        run: |
+          IS_PACK_NAME=$(find . -maxdepth 1 -type d -name "wso2is-*" | head -1 | xargs basename)
+          echo "Repackaging $IS_PACK_NAME"
+          rm -f "${IS_PACK_NAME}.zip"
+          zip -r "${IS_PACK_NAME}.zip" "$IS_PACK_NAME/"
+      - name: Run Integration Tests with FIPS (JDK 21)
+        working-directory: modules/integration/tests-integration/tests-backend
+        run: |
+          mvn clean install -Dmaven.test.failure.ignore=false | tee mvn-test.log
+
+          PR_TEST_STATUS=$(cat mvn-test.log | grep "\[INFO\] BUILD" | grep -oE '[^ ]+$')
+          PR_TEST_RESULT=$(sed -n -e '/\[INFO\] Results:/,/\[INFO\] Tests run:/ p' mvn-test.log)
+
+          PR_BUILD_FINAL_RESULT=$(
+            echo "==========================================================="
+            echo "product-is FIPS TESTS $PR_TEST_STATUS"
+            echo "=========================================================="
+            echo ""
+            echo "$PR_TEST_RESULT"
+          )
+
+          PR_BUILD_RESULT_LOG_TEMP=$(echo "$PR_BUILD_FINAL_RESULT" | sed 's/$/%0A/')
+          PR_BUILD_RESULT_LOG=$(echo $PR_BUILD_RESULT_LOG_TEMP)
+          echo "::warning::$PR_BUILD_RESULT_LOG"
+
+          PR_TEST_SUCCESS_COUNT=$(grep -o -i "\[INFO\] BUILD SUCCESS" mvn-test.log | wc -l)
+          if [ "$PR_TEST_SUCCESS_COUNT" != "17" ]; then
+            echo "Integration tests not successful. Aborting."
+            echo "::error::Integration tests not successful. Check artifacts for logs."
+            exit 1
+          fi
+
+          echo ""
+          echo "=========================================================="
+          echo "Build completed"
+          echo "=========================================================="
+          echo ""
+      - name: Archive mvn build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: product-is-fips-mvn-build-log
+          path: |
+            modules/integration/tests-integration/tests-backend/mvn-test.log
+          if-no-files-found: warn
+      - name: Archive surefire reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: product-is-fips-surefire-report
+          path: |
+            modules/integration/tests-integration/tests-backend/**/surefire-reports
+          if-no-files-found: warn
