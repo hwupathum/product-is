@@ -40,7 +40,7 @@ jobs:
           CARBON_HOME="$(pwd)/$IS_PACK_NAME" bash "$IS_PACK/bin/fips.sh"
           echo "Repackaging $IS_PACK_NAME"
           rm -f "$IS_ZIP"
-          zip -r "$IS_ZIP" "$IS_PACK_NAME/"
+          zip -qr "$IS_ZIP" "$IS_PACK_NAME/"
       - name: Run Integration Tests with FIPS (JDK 21)
         working-directory: modules/integration/tests-integration/tests-backend
         run: |
