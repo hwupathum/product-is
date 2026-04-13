@@ -22,11 +22,14 @@ jobs:
       - name: Build IS pack without Integration Tests
         run: |
           mvn clean install --batch-mode -Dmaven.test.skip=true | tee mvn-build.log
-      - name: Unzip IS distribution
+      - name: Configure FIPS and repackage IS distribution
+        working-directory: modules/distribution/target
         run: |
-          IS_PACK=$(find modules/distribution/target -maxdepth 1 -type d -name "wso2is-*" | head -1)
-          echo "Unzipping $IS_PACK.zip"
-          unzip -q "$IS_PACK.zip" -d modules/distribution/target/
+          IS_ZIP=$(find . -maxdepth 1 -name "wso2is-*.zip" | head -1)
+          IS_PACK_NAME=$(basename "$IS_ZIP" .zip)
+          echo "Unzipping $IS_ZIP"
+          unzip -q "$IS_ZIP"
+          IS_PACK="$IS_PACK_NAME"
           echo "Adding FIPS configuration to $IS_PACK/repository/conf/deployment.toml"
           cat >> "$IS_PACK/repository/conf/deployment.toml" << 'EOF'
 
@@ -35,12 +38,9 @@ jobs:
           EOF
           echo "Running fips.sh on $IS_PACK"
           bash "$IS_PACK/bin/fips.sh"
-      - name: Repackage IS distribution with FIPS configuration
-        run: |
-          IS_PACK_NAME=$(find modules/distribution/target -maxdepth 1 -type d -name "wso2is-*" | head -1 | xargs basename)
           echo "Repackaging $IS_PACK_NAME"
-          rm -f "${IS_PACK_NAME}.zip"
-          zip -r "${IS_PACK_NAME}.zip" "$IS_PACK_NAME/"
+          rm -f "$IS_ZIP"
+          zip -r "$IS_ZIP" "$IS_PACK_NAME/"
       - name: Run Integration Tests with FIPS (JDK 21)
         working-directory: modules/integration/tests-integration/tests-backend
         run: |
