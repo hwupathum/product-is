@@ -1,6 +1,6 @@
 #! /bin/bash
 # ----------------------------------------------------------------------------
-#  Copyright 2023 WSO2, LLC. http://www.wso2.org
+#  Copyright 2023-2026 WSO2, LLC. http://www.wso2.org
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -14,373 +14,320 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-BC_FIPS_VERSION=2.1.0;
-BCPKIX_FIPS_VERSION=2.1.9;
-BCUTIL_FIPS_VERSION=2.1.4;
+BC_FIPS_VERSION=2.1.2
+BCPKIX_FIPS_VERSION=2.1.10
+BCUTIL_FIPS_VERSION=2.1.5
+BCPG_FIPS_VERSION=2.1.11
+BCTLS_FIPS_VERSION=2.1.22
 
-EXPECTED_BC_FIPS_CHECKSUM="c8df3d47f9854f3e9ca57e9fc862da18c9381fa9"
-EXPECTED_BCPKIX_FIPS_CHECKSUM="722eaefa83fd8c53e1fc019bde25e353258ed22b"
-EXPECTED_BCUTIL_FIPS_CHECKSUM="1d37b7a28560684f5b8e4fd65478c9130d4015d0"
+EXPECTED_BC_FIPS_CHECKSUM="061fbe8383f70489dda95a11a2a4739eb818ff2c"
+EXPECTED_BCPKIX_FIPS_CHECKSUM="41d15c70437440d63b65225d7c00873a030d25d0"
+EXPECTED_BCUTIL_FIPS_CHECKSUM="30b41ebc759a4f02e2ff7ab9acb09268923ee41f"
+EXPECTED_BCPG_FIPS_CHECKSUM="727e087a843f3a5a8143e4f3a7518c8c3517df18"
+EXPECTED_BCTLS_FIPS_CHECKSUM="d2979016bf75ef8b5e8aa17211399651a391a21f"
 
-# Get standard environment variables
-PRGDIR=`dirname "$PRG"`
+PRGDIR=$(dirname "$PRG")
 
 # Only set CARBON_HOME if not already set
-[ -z "$CARBON_HOME" ] && CARBON_HOME=`cd "$PRGDIR/.." ; pwd`
+[ -z "$CARBON_HOME" ] && CARBON_HOME=$(cd "$PRGDIR/.." || exit 1; pwd)
 
-ARGUMENT=$1;
-bundles_info="$CARBON_HOME/repository/components/default/configuration/org.eclipse.equinox.simpleconfigurator/bundles.info";
+ARGUMENT=$1
+bundles_info="$CARBON_HOME/repository/components/default/configuration/org.eclipse.equinox.simpleconfigurator/bundles.info"
 homeDir="$HOME"
 server_restart_required=false
 
-if [ "$ARGUMENT" = "DISABLE" ] || [ "$ARGUMENT" = "disable" ]; then
-    if [ -f $CARBON_HOME/repository/components/lib/bc-fips*.jar ]; then
-	    server_restart_required=true
-   		echo "Remove existing bc-fips jar from lib folder."
-   		rm rm $CARBON_HOME/repository/components/lib/bc-fips*.jar 2> /dev/null
-		echo "Successfully removed bc-fips_$BC_FIPS_VERSION.jar from component/lib."
-   	fi
-   	if [ -f $CARBON_HOME/repository/components/lib/bcpkix-fips*.jar ]; then
-   	    server_restart_required=true
-   		echo "Remove existing bcpkix-fips jar from lib folder."
-   		rm rm $CARBON_HOME/repository/components/lib/bcpkix-fips*.jar 2> /dev/null
-   		echo "Successfully removed bcpkix-fips_$BCPKIX_FIPS_VERSION.jar  from component/lib."
-   	fi
-	if [ -f $CARBON_HOME/repository/components/lib/bcutil-fips*.jar ]; then
-   	    server_restart_required=true
-   		echo "Remove existing bcutil-fips jar from lib folder."
-   		rm rm $CARBON_HOME/repository/components/lib/bcutil-fips*.jar 2> /dev/null
-   		echo "Successfully removed bcutil-fips_$BCUTIL_FIPS_VERSION.jar from component/lib."
-   	fi
-   	if [ -f $CARBON_HOME/repository/components/dropins/bc_fips*.jar ]; then
-   	    server_restart_required=true
-   		echo "Remove existing bc-fips jar from dropins folder."
-   		rm rm $CARBON_HOME/repository/components/dropins/bc_fips*.jar 2> /dev/null
-   		echo "Successfully removed bc-fips_$BC_FIPS_VERSION.jar from component/dropins."
-   	fi
-   	if [ -f $CARBON_HOME/repository/components/dropins/bcpkix_fips*.jar ]; then
-   	    server_restart_required=true
-   		echo "Remove existing bcpkix_fips jar from dropins folder."
-   		rm rm $CARBON_HOME/repository/components/dropins/bcpkix_fips*.jar 2> /dev/null
-		echo "Successfully removed bcpkix_fips_$BCPKIX_FIPS_VERSION.jar from component/dropins."
-   	fi
-	if [ -f $CARBON_HOME/repository/components/dropins/bcutil_fips*.jar ]; then
-   	    server_restart_required=true
-   		echo "Remove existing bcutil_fips jar from dropins folder."
-   		rm rm $CARBON_HOME/repository/components/dropins/bcutil_fips*.jar 2> /dev/null
-   		echo "Successfully removed bcutil_fips_$BCUTIL_FIPS_VERSION.jar from component/dropins."
-   	fi
-	if [ ! -e $CARBON_HOME/repository/components/plugins/bcprov-jdk18on*.jar ]; then
-	    server_restart_required=true
-	    if [ -e $homeDir/.wso2-bc/backup/bcprov-jdk18on*.jar ]; then
-	      location=$(find "$homeDir/.wso2-bc/backup/" -type f -name "bcprov-jdk18on*.jar" | head -1)
-        bcprov_file_name=$(basename "$location")
-        bcprov_version=${bcprov_file_name#*_}
-        bcprov_version=${bcprov_version%.jar}
-		    mv "$location" "$CARBON_HOME/repository/components/plugins"
-		    echo "Moved $bcprov_file_name from $homeDir/.wso2-bc/backup to components/plugins."
-	    else
-		    echo "Required bcprov-jdk18on jar is not available in $homeDir/.wso2-bc/backup. Download the jar from maven central repository."
-	    fi
-	fi
-	if [ ! -e $CARBON_HOME/repository/components/plugins/bcpkix-jdk18on*.jar ]; then
-	    server_restart_required=true
-	    if [ -e $homeDir/.wso2-bc/backup/bcpkix-jdk18on*.jar ]; then
-	      location=$(find "$homeDir/.wso2-bc/backup/" -type f -name "bcpkix-jdk18on*.jar" | head -1)
-        bcpkix_file_name=$(basename "$location")
-        bcpkix_version=${bcpkix_file_name#*_}
-        bcpkix_version=${bcpkix_version%.jar}
-		    mv "$location" "$CARBON_HOME/repository/components/plugins"
-		    echo "Moved $bcpkix_file_name from $homeDir/.wso2-bc/backup to components/plugins."
-	    else
-		    echo "Required bcpkix-jdk18on jar is not available in $homeDir/.wso2-bc/backup. Download the jar from maven central repository."
-	    fi
-	fi
+# ---------------------------------------------------------------------------
+# Helper: cross-platform SHA-1 checksum
+# ---------------------------------------------------------------------------
+sha1_checksum() {
+    if command -v sha1sum > /dev/null 2>&1; then
+        sha1sum "$1" | cut -d' ' -f1
+    else
+        shasum -a 1 "$1" | cut -d' ' -f1
+    fi
+}
 
-  bcprov_text="bcprov-jdk18on,$bcprov_version,../plugins/$bcprov_file_name,4,true";
-  bcpkix_text="bcpkix-jdk18on,$bcpkix_version,../plugins/$bcpkix_file_name,4,true";
-	if ! grep -q "$bcprov_text" "$bundles_info" ; then
-		echo  $bcprov_text >> $bundles_info;
-		server_restart_required=true
-	fi
-	if ! grep -q "$bcpkix_text" "$bundles_info" ; then
-		echo  $bcpkix_text >> $bundles_info;
-		server_restart_required=true
-	fi
+# ---------------------------------------------------------------------------
+# Helper: remove a FIPS jar from lib/ and its matching dropins/ jar if present
+# ---------------------------------------------------------------------------
+remove_fips_lib_jar() {
+    local name_pattern="$1"
+    local dropins_pattern="$2"
+    local display_version="$3"
+
+    if ls "$CARBON_HOME/repository/components/lib/$name_pattern"*.jar 1>/dev/null 2>&1; then
+        server_restart_required=true
+        echo "Remove existing $name_pattern jar from lib folder."
+        rm "$CARBON_HOME/repository/components/lib/$name_pattern"*.jar 2>/dev/null
+        echo "Successfully removed ${name_pattern}-${display_version}.jar from component/lib."
+    fi
+    if ls "$CARBON_HOME/repository/components/dropins/$dropins_pattern"*.jar 1>/dev/null 2>&1; then
+        server_restart_required=true
+        echo "Remove existing $dropins_pattern jar from dropins folder."
+        rm "$CARBON_HOME/repository/components/dropins/$dropins_pattern"*.jar 2>/dev/null
+        echo "Successfully removed ${dropins_pattern}-${display_version}.jar from component/dropins."
+    fi
+}
+
+# ---------------------------------------------------------------------------
+# Helper: restore a non-FIPS jar from backup to plugins/ and capture metadata
+# Sets <var_prefix>_file_name and <var_prefix>_version in the caller's scope
+# ---------------------------------------------------------------------------
+restore_nonfips_jar() {
+    local pattern="$1"
+    local var_prefix="$2"
+
+    if ! ls "$CARBON_HOME/repository/components/plugins/$pattern"*.jar 1>/dev/null 2>&1; then
+        server_restart_required=true
+        if ls "$homeDir/.wso2-bc/backup/$pattern"*.jar 1>/dev/null 2>&1; then
+            local location
+            location=$(find "$homeDir/.wso2-bc/backup/" -type f -name "${pattern}*.jar" | head -1)
+            local file_name version
+            file_name=$(basename "$location")
+            version=${file_name#*_}
+            version=${version%.jar}
+            mv "$location" "$CARBON_HOME/repository/components/plugins"
+            echo "Moved $file_name from $homeDir/.wso2-bc/backup to components/plugins."
+            eval "${var_prefix}_file_name=\"$file_name\""
+            eval "${var_prefix}_version=\"$version\""
+        else
+            echo "Required $pattern jar is not available in $homeDir/.wso2-bc/backup. Download the jar from maven central repository."
+        fi
+    fi
+}
+
+# ---------------------------------------------------------------------------
+# Helper: backup a non-FIPS jar from plugins/ to ~/.wso2-bc/backup
+# ---------------------------------------------------------------------------
+backup_nonfips_jar() {
+    local pattern="$1"
+
+    if ls "$CARBON_HOME/repository/components/plugins/$pattern"*.jar 1>/dev/null 2>&1; then
+        server_restart_required=true
+        local location
+        location=$(find "$CARBON_HOME/repository/components/plugins/" -type f -name "${pattern}*.jar" | head -1)
+        echo "Remove existing $pattern jar from plugins folder."
+        if ls "$homeDir/.wso2-bc/backup/$pattern"*.jar 1>/dev/null 2>&1; then
+            rm "$homeDir/.wso2-bc/backup/$pattern"*.jar
+        fi
+        mv "$location" "$homeDir/.wso2-bc/backup"
+        echo "Successfully removed $(basename "$location") from component/plugins."
+    fi
+}
+
+# ---------------------------------------------------------------------------
+# Helper: ensure a FIPS jar is present and up to date in lib/
+# ---------------------------------------------------------------------------
+ensure_fips_jar() {
+    local name="$1"
+    local version="$2"
+    local expected_checksum="$3"
+    local maven_artifact="$4"
+    local arg1="$5"
+    local arg2="$6"
+    local lib="$CARBON_HOME/repository/components/lib"
+    local dropins="$CARBON_HOME/repository/components/dropins"
+    local dropins_pattern
+    dropins_pattern=$(echo "$name" | tr '-' '_')
+
+    # Remove outdated version if present
+    if ls "$lib/$name"*.jar 1>/dev/null 2>&1; then
+        local location
+        location=$(find "$lib/" -type f -name "${name}*.jar" | head -1)
+        if [ ! "$location" = "$lib/$name-$version.jar" ]; then
+            server_restart_required=true
+            echo "There is an update for $name. Therefore removing existing $name jar from lib folder."
+            rm "$lib/$name"*.jar 2>/dev/null
+            echo "Successfully removed ${name}-${version}.jar from component/lib."
+            if ls "$dropins/${dropins_pattern}"*.jar 1>/dev/null 2>&1; then
+                echo "Remove existing $name jar from dropins folder."
+                rm "$dropins/${dropins_pattern}"*.jar 2>/dev/null
+                echo "Successfully removed ${dropins_pattern}-${version}.jar from component/dropins."
+            fi
+        fi
+    fi
+
+    # Download or copy if still missing
+    if ! ls "$lib/$name"*.jar 1>/dev/null 2>&1; then
+        server_restart_required=true
+        if [ -z "$arg1" ] && [ -z "$arg2" ]; then
+            echo "Downloading required $name jar : $name-$version"
+            if curl -f "https://repo1.maven.org/maven2/org/bouncycastle/$maven_artifact/$version/$maven_artifact-$version.jar" \
+                -o "$lib/$name-$version.jar"; then
+                local actual_checksum
+                actual_checksum=$(sha1_checksum "$lib/$name-$version.jar")
+                if [ "$expected_checksum" = "$actual_checksum" ]; then
+                    echo "Checksum verified: The downloaded $name-$version.jar is valid."
+                else
+                    echo "Checksum verification failed: The downloaded $name-$version.jar may be corrupted."
+                    rm "$lib/$name-$version.jar"
+                fi
+            else
+                echo "Failed to download $name-$version.jar."
+                rm -f "$lib/$name-$version.jar"
+            fi
+        elif [ -n "$arg1" ] && [ -z "$arg2" ]; then
+            if [ ! -e "$arg1/$name-$version.jar" ]; then
+                echo "Can not be found required $name-$version.jar in given file path : $arg1."
+            else
+                if cp "$arg1/$name-$version.jar" "$lib"; then
+                    echo "$name JAR file copied successfully."
+                else
+                    echo "Error copying $name JAR file."
+                fi
+            fi
+        else
+            echo "Downloading required $name jar : $name-$version"
+            if curl -f "$arg2/org/bouncycastle/$maven_artifact/$version/$maven_artifact-$version.jar" \
+                -o "$lib/$name-$version.jar"; then
+                local actual_checksum
+                actual_checksum=$(sha1_checksum "$lib/$name-$version.jar")
+                if [ "$expected_checksum" = "$actual_checksum" ]; then
+                    echo "Checksum verified: The downloaded $name-$version.jar is valid."
+                else
+                    echo "Checksum verification failed: The downloaded $name-$version.jar may be corrupted."
+                    rm "$lib/$name-$version.jar"
+                fi
+            else
+                echo "Failed to download $name-$version.jar."
+                rm -f "$lib/$name-$version.jar"
+            fi
+        fi
+    fi
+}
+
+# ---------------------------------------------------------------------------
+# Helper: verify a FIPS jar is present and at the correct version in lib/
+# ---------------------------------------------------------------------------
+check_fips_jar() {
+    local name="$1"
+    local version="$2"
+
+    if ls "$CARBON_HOME/repository/components/lib/$name"*.jar 1>/dev/null 2>&1; then
+        if [ ! -f "$CARBON_HOME/repository/components/lib/$name-$version.jar" ]; then
+            verify=false
+            echo "There is an update for $name. Run the script again to get updates."
+        fi
+    else
+        verify=false
+        echo "Can not be found $name-$version.jar in components/lib folder. This jar should be added."
+    fi
+}
+
+# ===========================================================================
+
+if [ "$ARGUMENT" = "DISABLE" ] || [ "$ARGUMENT" = "disable" ]; then
+
+    # Remove all FIPS jars from lib/ and dropins/
+    remove_fips_lib_jar "bc-fips"     "bc_fips"     "$BC_FIPS_VERSION"
+    remove_fips_lib_jar "bcpkix-fips" "bcpkix_fips" "$BCPKIX_FIPS_VERSION"
+    remove_fips_lib_jar "bcutil-fips" "bcutil_fips" "$BCUTIL_FIPS_VERSION"
+    remove_fips_lib_jar "bcpg-fips"   "bcpg_fips"   "$BCPG_FIPS_VERSION"
+    remove_fips_lib_jar "bctls-fips"  "bctls_fips"  "$BCTLS_FIPS_VERSION"
+
+    # Restore all non-FIPS jars from backup to plugins/
+    restore_nonfips_jar "bcprov-jdk18on"  "bcprov"
+    restore_nonfips_jar "bcpkix-jdk18on"  "bcpkix"
+    restore_nonfips_jar "bcutil-jdk18on"  "bcutil"
+    restore_nonfips_jar "bcpg-jdk18on"    "bcpg"
+    restore_nonfips_jar "bctls-jdk18on"   "bctls"
+
+    # Restore bundles.info entries for non-FIPS jars
+    for entry in \
+        "bcprov-jdk18on:${bcprov_version}:${bcprov_file_name}" \
+        "bcpkix-jdk18on:${bcpkix_version}:${bcpkix_file_name}" \
+        "bcutil-jdk18on:${bcutil_version}:${bcutil_file_name}" \
+        "bcpg-jdk18on:${bcpg_version}:${bcpg_file_name}" \
+        "bctls-jdk18on:${bctls_version}:${bctls_file_name}"
+    do
+        IFS=':' read -r jar_name jar_ver jar_file <<< "$entry"
+        if [ -z "$jar_ver" ] || [ -z "$jar_file" ]; then
+            echo "Skipping bundles.info entry for $jar_name: JAR was not restored from backup."
+            continue
+        fi
+        text="$jar_name,$jar_ver,../plugins/$jar_file,4,true"
+        if ! grep -q "$text" "$bundles_info"; then
+            echo "$text" >> "$bundles_info"
+            server_restart_required=true
+        fi
+    done
 
 elif [ "$ARGUMENT" = "VERIFY" ] || [ "$ARGUMENT" = "verify" ]; then
-	verify=true;
-	if [ -f $CARBON_HOME/repository/components/plugins/bcprov-jdk18on*.jar ]; then
-		location=$(find "$CARBON_HOME/repository/components/plugins/" -type f -name "bcprov-jdk18on*.jar" | head -1)
-		file_name=$(basename "$location")
-		verify=false
-		echo "Found $file_name in plugins folder. This jar should be removed."
-	fi
-	if [ -f $CARBON_HOME/repository/components/plugins/bcpkix-jdk18on*.jar ]; then
-		location=$(find "$CARBON_HOME/repository/components/plugins/" -type f -name "bcpkix-jdk18on*.jar" | head -1)
-		file_name=$(basename "$location")
-		verify=false
-		echo "Found $file_name in plugins folder. This jar should be removed."
-	fi
-	if [ -f $CARBON_HOME/repository/components/lib/bc-fips*.jar ]; then
-	    if [ ! -f $CARBON_HOME/repository/components/lib/bc-fips-$BC_FIPS_VERSION.jar ]; then
-			verify=false
-			echo "There is an update for bc-fips. Run the script again to get updates."
-		fi
-	else
-		verify=false
-		echo "Can not be found bc-fips_$BC_FIPS_VERSION.jar in components/lib folder. This jar should be added."
-	fi
-	if [ -f $CARBON_HOME/repository/components/lib/bcpkix-fips*.jar ]; then
-	    if [ ! -f $CARBON_HOME/repository/components/lib/bcpkix-fips-$BCPKIX_FIPS_VERSION.jar ]; then
-	    	verify=false
-	    	echo "There is an update for bcpkix-fips. Run the script again to get updates."
+    verify=true
 
-		fi
-	else
-		verify=false
-		echo "Can not be found bcpkix-fips_$BCPKIX_FIPS_VERSION.jar in components/lib folder. This jar should be added."
+    # Non-FIPS jars must NOT be in plugins/
+    for pattern in "bcprov-jdk18on" "bcpkix-jdk18on" "bcutil-jdk18on" "bcpg-jdk18on" "bctls-jdk18on"; do
+        if ls "$CARBON_HOME/repository/components/plugins/$pattern"*.jar 1>/dev/null 2>&1; then
+            location=$(find "$CARBON_HOME/repository/components/plugins/" -type f -name "${pattern}*.jar" | head -1)
+            verify=false
+            echo "Found $(basename "$location") in plugins folder. This jar should be removed."
+        fi
+    done
 
-	fi
-	if [ -f $CARBON_HOME/repository/components/lib/bcutil-fips*.jar ]; then
-	    if [ ! -f $CARBON_HOME/repository/components/lib/bcutil-fips-$BCUTIL_FIPS_VERSION.jar ]; then
-	    	verify=false
-	    	echo "There is an update for bcutil-fips. Run the script again to get updates."
-		fi
-	else
-		verify=false
-		echo "Can not be found bcutil-fips_$BCUTIL_FIPS_VERSION.jar in components/lib folder. This jar should be added."
-	fi
-	if grep -q "bcprov-jdk18on" "$bundles_info" ; then
-    verify=false
-  	echo  "Found bcprov-jdk18on entry in bundles.info. This should be removed.";
+    # Non-FIPS entries must NOT be in bundles.info
+    for pattern in "bcprov-jdk18on" "bcpkix-jdk18on" "bcutil-jdk18on" "bcpg-jdk18on" "bctls-jdk18on"; do
+        if grep -q "$pattern" "$bundles_info"; then
+            verify=false
+            echo "Found $pattern entry in bundles.info. This should be removed."
+        fi
+    done
 
-  	fi
-  	if grep -q "bcpkix-jdk18on" "$bundles_info" ; then
-  		verify=false
-  		echo  "Found bcpkix-jdk18on entry in bundles.info. This should be removed.";
-  	fi
+    # FIPS jars must be present and at the correct version in lib/
+    check_fips_jar "bc-fips"     "$BC_FIPS_VERSION"
+    check_fips_jar "bcpkix-fips" "$BCPKIX_FIPS_VERSION"
+    check_fips_jar "bcutil-fips" "$BCUTIL_FIPS_VERSION"
+    check_fips_jar "bcpg-fips"   "$BCPG_FIPS_VERSION"
+    check_fips_jar "bctls-fips"  "$BCTLS_FIPS_VERSION"
 
-	if [ $verify = true ]; then
-		echo "Verified : Product is FIPS compliant."
-	else 	echo "Verification failed : Product is not FIPS compliant."
-	fi
+    if [ "$verify" = true ]; then
+        echo "Verified : Product is FIPS compliant."
+    else
+        echo "Verification failed : Product is not FIPS compliant."
+    fi
 
 else
-while getopts "f:m:" opt; do
-  	case $opt in
-    	f)
-    		arg1=$OPTARG
-      		;;
-    	m)
-      	arg2=$OPTARG
-      		;;
-    	\?)
-      	echo "Invalid option: -$OPTARG" >&2
-      	exit 1
-      	;;
-  	esac
-	done
+    while getopts "f:m:" opt; do
+        case $opt in
+            f) arg1=$OPTARG ;;
+            m) arg2=$OPTARG ;;
+            \?)
+                echo "Invalid option: -$OPTARG" >&2
+                exit 1
+                ;;
+        esac
+    done
 
-	if [ ! -d "$homeDir/.wso2-bc" ]; then
-    		mkdir "$homeDir/.wso2-bc"
-	fi
-	if [ ! -d "$homeDir/.wso2-bc/backup" ]; then
-    		mkdir "$homeDir/.wso2-bc/backup"
-	fi
-	if [ -f $CARBON_HOME/repository/components/plugins/bcprov-jdk18on*.jar ]; then
-	    server_restart_required=true
-	    location=$(find "$CARBON_HOME/repository/components/plugins/" -type f -name "bcprov-jdk18on*.jar" | head -1)
-	    echo "Remove existing bcprov-jdk18on jar from plugins folder."
-	    if [ -f $homeDir/.wso2-bc/backup/bcprov-jdk18on*.jar ]; then
-	      rm $homeDir/.wso2-bc/backup/bcprov-jdk18on*.jar
-	    fi
-	    mv "$location" "$homeDir/.wso2-bc/backup"
-	    bcprov_file_name=$(basename "$location")
-	    bcprov_version=${file_name#*_}
-      bcprov_version=${bcprov_version%.jar}
-   	  echo "Successfully removed $bcprov_file_name from component/plugins."
-	fi
-	if [ -f $CARBON_HOME/repository/components/plugins/bcpkix-jdk18on*.jar ]; then
-	   	server_restart_required=true
-   		echo "Remove existing bcpkix-jdk18on jar from plugins folder."
-   		location=$(find "$CARBON_HOME/repository/components/plugins/" -type f -name "bcpkix-jdk18on*.jar" | head -1)
-   		if [ -f $homeDir/.wso2-bc/backup/bcpkix-jdk18on*.jar ]; then
-        rm $homeDir/.wso2-bc/backup/bcpkix-jdk18on*.jar
-      fi
-   		mv "$location" "$homeDir/.wso2-bc/backup"
-   		bcpkix_file_name=$(basename "$location")
-   		echo "Successfully removed $bcpkix_file_name from component/plugins."
-	fi
-	if [ -f $CARBON_HOME/repository/components/plugins/bcutil-fips*.jar ]; then
-	    server_restart_required=true
-   		echo "Remove existing bcutil-fips jar from plugins folder."
-   		location=$(find "$CARBON_HOME/repository/components/plugins/" -type f -name "bcutil-fips*.jar" | head -1)
-   		if [ -f $homeDir/.wso2-bc/backup/bcutil-fips*.jar ]; then
-		rm $homeDir/.wso2-bc/backup/bcutil-fips*.jar
-	  fi
-   		mv "$location" "$homeDir/.wso2-bc/backup"
-   		bcutil_file_name=$(basename "$location")
-   		echo "Successfully removed $bcutil_file_name from component/plugins."
-	fi
+    if [ ! -d "$homeDir/.wso2-bc" ]; then
+        mkdir "$homeDir/.wso2-bc"
+    fi
+    if [ ! -d "$homeDir/.wso2-bc/backup" ]; then
+        mkdir "$homeDir/.wso2-bc/backup"
+    fi
 
-	if grep -q "bcprov-jdk18on" "$bundles_info"; then
-		server_restart_required=true
-		perl -i -ne 'print unless /bcprov-jdk18on/' $bundles_info
-	fi
-	if grep -q "bcpkix-jdk18on" "$bundles_info"; then
-		server_restart_required=true
-		perl -i -ne 'print unless /bcpkix-jdk18on/' $bundles_info
-	fi
+    # Move all non-FIPS jars from plugins/ to backup
+    backup_nonfips_jar "bcprov-jdk18on"
+    backup_nonfips_jar "bcpkix-jdk18on"
+    backup_nonfips_jar "bcutil-jdk18on"
+    backup_nonfips_jar "bcpg-jdk18on"
+    backup_nonfips_jar "bctls-jdk18on"
 
-	if [ -e $CARBON_HOME/repository/components/lib/bc-fips*.jar ]; then
-	    location=$(find "$CARBON_HOME/repository/components/lib/" -type f -name "bc-fips*.jar" | head -1)
-		if [ ! $location = "$CARBON_HOME/repository/components/lib/bc-fips-$BC_FIPS_VERSION.jar" ]; then
-		    server_restart_required=true
-   	    	echo "There is an update for bc-fips. Therefore Remove existing bc-fips jar from lib folder."
-   		    rm rm $CARBON_HOME/repository/components/lib/bc-fips*.jar 2> /dev/null
-		    echo "Successfully removed bc-fips_$BC_FIPS_VERSION.jar from component/lib."
-		    if [ -f $CARBON_HOME/repository/components/dropins/bc_fips*.jar ]; then
-   	            	server_restart_required=true
-   		        echo "Remove existing bc-fips jar from dropins folder."
-   		        rm rm $CARBON_HOME/repository/components/dropins/bc_fips*.jar 2> /dev/null
-   		        echo "Successfully removed bc-fips_$BC_FIPS_VERSION.jar from component/dropins."
-   	        fi
-		fi
-	fi
+    # Remove non-FIPS entries from bundles.info
+    for pattern in "bcprov-jdk18on" "bcpkix-jdk18on" "bcutil-jdk18on" "bcpg-jdk18on" "bctls-jdk18on"; do
+        if grep -q "$pattern" "$bundles_info"; then
+            server_restart_required=true
+            perl -i -ne "print unless /$pattern/" "$bundles_info"
+        fi
+    done
 
-	if [ ! -e $CARBON_HOME/repository/components/lib/bc-fips*.jar ]; then
-		server_restart_required=true
-		if [ -z "$arg1" ] && [ -z "$arg2" ]; then
-		    echo "Downloading required bc-fips jar : bc-fips-$BC_FIPS_VERSION"
-		    curl https://repo1.maven.org/maven2/org/bouncycastle/bc-fips/$BC_FIPS_VERSION/bc-fips-$BC_FIPS_VERSION.jar -o $CARBON_HOME/repository/components/lib/bc-fips-$BC_FIPS_VERSION.jar
-		    ACTUAL_CHECKSUM=$(sha1sum $CARBON_HOME/repository/components/lib/bc-fips*.jar | cut -d' ' -f1)
-	    	if [ "$EXPECTED_BC_FIPS_CHECKSUM" = "$ACTUAL_CHECKSUM" ]; then
-  		        echo "Checksum verified: The downloaded bc-fips-$BC_FIPS_VERSION.jar is valid."
-	    	else
-  		        echo "Checksum verification failed: The downloaded bc-fips-$BC_FIPS_VERSION.jar may be corrupted."
-	   	    fi
-	   	elif [ ! -z "$arg1" ] && [ -z "$arg2" ]; then
-	    	if [ ! -e $arg1/bcpkix-fips-$BCPKIX_FIPS_VERSION.jar ]; then
-	    	    echo "Can not be found required bc-fips-$BC_FIPS_VERSION.jar in given file path : $arg1."
-	    	else
-			    cp "$arg1/bc-fips-$BC_FIPS_VERSION.jar" "$CARBON_HOME/repository/components/lib"
-			    if [ $? -eq 0 ]; then
-  				    echo "bc-fips JAR files copied successfully."
-			    else
-  				    echo "Error copying bc-fips JAR file."
-			    fi
-			fi
-		else
-		    echo "Downloading required bc-fips jar : bc-fips-$BC_FIPS_VERSION"
-		    curl $arg2/org/bouncycastle/bc-fips/$BC_FIPS_VERSION/bc-fips-$BC_FIPS_VERSION.jar -o $CARBON_HOME/repository/components/lib/bc-fips-$BC_FIPS_VERSION.jar
-		    ACTUAL_CHECKSUM=$(sha1sum $CARBON_HOME/repository/components/lib/bc-fips*.jar | cut -d' ' -f1)
-	    	if [ "$EXPECTED_BC_FIPS_CHECKSUM" = "$ACTUAL_CHECKSUM" ]; then
-  		        echo "Checksum verified: The downloaded bc-fips-$BC_FIPS_VERSION.jar is valid."
-	    	else
-  		        echo "Checksum verification failed: The downloaded bc-fips-$BC_FIPS_VERSION.jar may be corrupted."
-	   	    fi
-	   	fi
-	fi
+    # Ensure all FIPS jars are present and up to date in lib/
+    ensure_fips_jar "bc-fips"     "$BC_FIPS_VERSION"     "$EXPECTED_BC_FIPS_CHECKSUM"     "bc-fips"     "$arg1" "$arg2"
+    ensure_fips_jar "bcpkix-fips" "$BCPKIX_FIPS_VERSION" "$EXPECTED_BCPKIX_FIPS_CHECKSUM" "bcpkix-fips" "$arg1" "$arg2"
+    ensure_fips_jar "bcutil-fips" "$BCUTIL_FIPS_VERSION" "$EXPECTED_BCUTIL_FIPS_CHECKSUM" "bcutil-fips" "$arg1" "$arg2"
+    ensure_fips_jar "bcpg-fips"   "$BCPG_FIPS_VERSION"   "$EXPECTED_BCPG_FIPS_CHECKSUM"   "bcpg-fips"   "$arg1" "$arg2"
+    ensure_fips_jar "bctls-fips"  "$BCTLS_FIPS_VERSION"  "$EXPECTED_BCTLS_FIPS_CHECKSUM"  "bctls-fips"  "$arg1" "$arg2"
 
-	if [ -e $CARBON_HOME/repository/components/lib/bcpkix-fips*.jar ]; then
-	    location=$(find "$CARBON_HOME/repository/components/lib/" -type f -name "bcpkix-fips*.jar" | head -1)
-		if [ ! $location = "$CARBON_HOME/repository/components/lib/bcpkix-fips-$BCPKIX_FIPS_VERSION.jar" ]; then
-		    server_restart_required=true
-   	    	echo "There is an update for bcpkix-fips. Therefore Remove existing bcpkix-fips jar from lib folder."
-   		    rm rm $CARBON_HOME/repository/components/lib/bcpkix-fips*.jar 2> /dev/null
-		    echo "Successfully removed bcpkix-fips_$BCPKIX_FIPS_VERSION.jar from component/lib."
-		    if [ -f $CARBON_HOME/repository/components/dropins/bcpkix-fips*.jar ]; then
-   		        echo "Remove existing bcpkix-fips jar from dropins folder."
-   		        rm rm $CARBON_HOME/repository/components/dropins/bcpkix_fips*.jar 2> /dev/null
-   		        echo "Successfully removed bcpkix-fips_$BCPKIX_FIPS_VERSION.jar from component/dropins."
-   	        fi
-		fi
-	fi
-
-	if [ ! -e $CARBON_HOME/repository/components/lib/bcpkix-fips*.jar ]; then
-	    server_restart_required=true
-	    if [ -z "$arg1" ] && [ -z "$arg2" ]; then
-		    echo "Downloading required bcpkix-fips jar : bcpkix-fips-$BCPKIX_FIPS_VERSION"
-		    curl https://repo1.maven.org/maven2/org/bouncycastle/bcpkix-fips/$BCPKIX_FIPS_VERSION/bcpkix-fips-$BCPKIX_FIPS_VERSION.jar -o $CARBON_HOME/repository/components/lib/bcpkix-fips-$BCPKIX_FIPS_VERSION.jar
-		    ACTUAL_CHECKSUM=$(sha1sum $CARBON_HOME/repository/components/lib/bcpkix-fips*.jar | cut -d' ' -f1)
-	   	    if [ "$EXPECTED_BCPKIX_FIPS_CHECKSUM" = "$ACTUAL_CHECKSUM" ]; then
-  			    echo "Checksum verified: The downloaded bcpkix-fips-$BCPKIX_FIPS_VERSION.jar is valid."
-	    	else
-  			    echo "Checksum verification failed: The downloaded bcpkix-fips-$BCPKIX_FIPS_VERSION.jar may be corrupted."
-	    	fi
-	    elif [ ! -z "$arg1" ] && [ -z "$arg2" ]; then
-	   	    if [ ! -e $arg1/bcpkix-fips-$BCPKIX_FIPS_VERSION.jar ]; then
-	   	    	echo "Can not be found required bcpkix-fips-$BCPKIX_FIPS_VERSION.jar in given file path : $arg1."
-	   	    else
-			    cp "$arg1/bcpkix-fips-$BCPKIX_FIPS_VERSION.jar" "$CARBON_HOME/repository/components/lib"
-			    if [ $? -eq 0 ]; then
-  				    echo "bcpkix-fips JAR files copied successfully."
-			    else
-  				    echo "Error copying bcpkix-fips JAR file."
-			    fi
-		    fi
-		else
-			echo "Downloading required bcpkix-fips jar : bcpkix-fips-$BCPKIX_FIPS_VERSION"
-		    curl $arg2/org/bouncycastle/bcpkix-fips/$BCPKIX_FIPS_VERSION/bcpkix-fips-$BCPKIX_FIPS_VERSION.jar -o $CARBON_HOME/repository/components/lib/bcpkix-fips-$BCPKIX_FIPS_VERSION.jar
-			ACTUAL_CHECKSUM=$(sha1sucam $CARBON_HOME/repository/components/lib/bc-fips*.jar | cut -d' ' -f1)
-	    	if [ "$EXPECTED_BC_FIPS_CHECKSUM" = "$ACTUAL_CHECKSUM" ]; then
-  		    	echo "Checksum verified: The downloaded bc-fips-$BC_FIPS_VERSION.jar is valid."
-	    	else
-  		    	echo "Checksum verification failed: The downloaded bc-fips-$BC_FIPS_VERSION.jar may be corrupted."
-	   		fi
-	   	fi
-	fi
-
-	if [ -e $CARBON_HOME/repository/components/lib/bcutil-fips*.jar ]; then
-	    location=$(find "$CARBON_HOME/repository/components/lib/" -type f -name "bcutil-fips*.jar" | head -1)
-		if [ ! $location = "$CARBON_HOME/repository/components/lib/bcutil-fips-$BCUTIL_FIPS_VERSION.jar" ]; then
-		    server_restart_required=true
-   	    	echo "There is an update for bcutil-fips. Therefore Remove existing bcutil-fips jar from lib folder."
-   		    rm rm $CARBON_HOME/repository/components/lib/bcutil-fips*.jar 2> /dev/null
-		    echo "Successfully removed bcutil-fips_$BCUTIL_FIPS_VERSION.jar from component/lib."
-		    if [ -f $CARBON_HOME/repository/components/dropins/bcutil_fips*.jar ]; then
-   		        echo "Remove existing bcutil-fips jar from dropins folder."
-   		        rm rm $CARBON_HOME/repository/components/dropins/bcutil_fips*.jar 2> /dev/null
-   		        echo "Successfully removed bcutil-fips_$BCUTIL_FIPS_VERSION.jar from component/dropins."
-   	        fi
-		fi
-	fi
-	if [ ! -e $CARBON_HOME/repository/components/lib/bcutil-fips*.jar ]; then
-	    server_restart_required=true
-	    if [ -z "$arg1" ] && [ -z "$arg2" ]; then
-		    echo "Downloading required bcutil-fips jar : bcutil-fips-$BCUTIL_FIPS_VERSION"
-		    curl https://repo1.maven.org/maven2/org/bouncycastle/bcutil-fips/$BCUTIL_FIPS_VERSION/bcutil-fips-$BCUTIL_FIPS_VERSION.jar -o $CARBON_HOME/repository/components/lib/bcutil-fips-$BCUTIL_FIPS_VERSION.jar
-		    ACTUAL_CHECKSUM=$(sha1sum $CARBON_HOME/repository/components/lib/bcutil-fips*.jar | cut -d' ' -f1)
-	    	if [ "$EXPECTED_BCUTIL_FIPS_CHECKSUM" = "$ACTUAL_CHECKSUM" ]; then
-  		        echo "Checksum verified: The downloaded bcutil-fips-$BCUTIL_FIPS_VERSION.jar is valid."
-	    	else
-  		        echo "Checksum verification failed: The downloaded bcutil-fips-$BCUTIL_FIPS_VERSION.jar may be corrupted."
-	   	    fi
-	   	elif [ ! -z "$arg1" ] && [ -z "$arg2" ]; then
-	   	    if [ ! -e $arg1/bcutil-fips-$BCUTIL_FIPS_VERSION.jar ]; then
-	   	    	echo "Can not be found required bcutil-fips-$BCUTIL_FIPS_VERSION.jar in given file path : $arg1."
-	   	    else
-			    cp "$arg1/bcutil-fips-$BCUTIL_FIPS_VERSION.jar" "$CARBON_HOME/repository/components/lib"
-			    if [ $? -eq 0 ]; then
-  				    echo "bcutil-fips JAR files copied successfully."
-			    else
-  				    echo "Error copying bcutil-fips JAR file."
-			    fi
-		    fi
-		else
-			echo "Downloading required bcutil-fips jar : bcutil-fips-$BCUTIL_FIPS_VERSION"
-		    curl $arg2/org/bouncycastle/bcutil-fips/$BCUTIL_FIPS_VERSION/bcutil-fips-$BCUTIL_FIPS_VERSION.jar -o $CARBON_HOME/repository/components/lib/bcutil-fips-$BCUTIL_FIPS_VERSION.jar
-		    ACTUAL_CHECKSUM=$(sha1sum $CARBON_HOME/repository/components/lib/bcutil-fips*.jar | cut -d' ' -f1)
-			if [ "$EXPECTED_BCUTIL_FIPS_CHECKSUM" = "$ACTUAL_CHECKSUM" ]; then
-  		        echo "Checksum verified: The downloaded bcutil-fips-$BCUTIL_FIPS_VERSION.jar is valid."
-	    	else
-  		        echo "Checksum verification failed: The downloaded bcutil-fips-$BCUTIL_FIPS_VERSION.jar may be corrupted."
-	   	    fi
-		fi
-	fi											
 fi
 
-if [ "$server_restart_required" = true ] ; then
+if [ "$server_restart_required" = true ]; then
     echo "Please restart the server."
 fi
