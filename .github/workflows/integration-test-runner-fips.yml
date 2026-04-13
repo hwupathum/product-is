@@ -26,16 +26,13 @@ jobs:
         working-directory: modules/distribution/target
         run: |
           IS_ZIP=$(find . -maxdepth 1 -name "wso2is-*.zip" | head -1)
-          IS_PACK_NAME=$(basename "$IS_ZIP" .zip)
+          IS_PACK=$(basename "$IS_ZIP" .zip)
           echo "Unzipping $IS_ZIP"
           unzip -q "$IS_ZIP"
-          IS_PACK="$IS_PACK_NAME"
           echo "Adding FIPS configuration to $IS_PACK/repository/conf/deployment.toml"
-          cat >> "$IS_PACK/repository/conf/deployment.toml" << 'EOF'
-
-          [jce_provider]
-          provider_name = "BC"
-          EOF
+          echo "" >> "$IS_PACK/repository/conf/deployment.toml"
+          echo "[jce_provider]" >> "$IS_PACK/repository/conf/deployment.toml"
+          echo 'provider_name = "BC"' >> "$IS_PACK/repository/conf/deployment.toml"
           echo "Running fips.sh on $IS_PACK"
           CARBON_HOME="$(pwd)/$IS_PACK_NAME" bash "$IS_PACK/bin/fips.sh"
           echo "Repackaging $IS_PACK_NAME"
