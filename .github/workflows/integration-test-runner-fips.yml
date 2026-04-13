@@ -1,4 +1,4 @@
-name: Integration Test Runner FIPS (JDK 21)
+name: Integration Test Runner FIPS
 
 on:
   workflow_dispatch:
@@ -22,24 +22,22 @@ jobs:
       - name: Build IS pack without Integration Tests
         run: |
           mvn clean install --batch-mode -Dmaven.test.skip=true | tee mvn-build.log
-      - name: Add FIPS configuration to deployment.toml
+      - name: Unzip IS distribution
         run: |
           IS_PACK=$(find modules/distribution/target -maxdepth 1 -type d -name "wso2is-*" | head -1)
+          echo "Unzipping $IS_PACK.zip"
+          unzip -q "$IS_PACK.zip" -d modules/distribution/target/
           echo "Adding FIPS configuration to $IS_PACK/repository/conf/deployment.toml"
           cat >> "$IS_PACK/repository/conf/deployment.toml" << 'EOF'
 
           [jce_provider]
           provider_name = "BC"
           EOF
-      - name: Run FIPS script
-        run: |
-          IS_PACK=$(find modules/distribution/target -maxdepth 1 -type d -name "wso2is-*" | head -1)
           echo "Running fips.sh on $IS_PACK"
           bash "$IS_PACK/bin/fips.sh"
       - name: Repackage IS distribution with FIPS configuration
-        working-directory: modules/distribution/target
         run: |
-          IS_PACK_NAME=$(find . -maxdepth 1 -type d -name "wso2is-*" | head -1 | xargs basename)
+          IS_PACK_NAME=$(find modules/distribution/target -maxdepth 1 -type d -name "wso2is-*" | head -1 | xargs basename)
           echo "Repackaging $IS_PACK_NAME"
           rm -f "${IS_PACK_NAME}.zip"
           zip -r "${IS_PACK_NAME}.zip" "$IS_PACK_NAME/"
