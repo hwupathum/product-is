@@ -37,7 +37,7 @@ jobs:
           provider_name = "BC"
           EOF
           echo "Running fips.sh on $IS_PACK"
-          bash "$IS_PACK/bin/fips.sh"
+          CARBON_HOME="$(pwd)/$IS_PACK_NAME" bash "$IS_PACK/bin/fips.sh"
           echo "Repackaging $IS_PACK_NAME"
           rm -f "$IS_ZIP"
           zip -r "$IS_ZIP" "$IS_PACK_NAME/"
