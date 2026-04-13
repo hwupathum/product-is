@@ -38,6 +38,12 @@ jobs:
           echo "Repackaging $IS_PACK"
           rm -f "$IS_ZIP"
           zip -qr "$IS_ZIP" "$IS_PACK/"
+      - name: Verify FIPS pack
+        working-directory: modules/distribution/target
+        run: |
+          IS_ZIP=$(find . -maxdepth 1 -name "wso2is-*.zip" ! -name "*-src.zip" | head -1)
+          echo "Pack to be used: $IS_ZIP"
+          unzip -l "$IS_ZIP" | grep -E "deployment.toml|bc-fips|bundles.info" | head -20
       - name: Run Integration Tests with FIPS (JDK 21)
         working-directory: modules/integration/tests-integration/tests-backend
         run: |
