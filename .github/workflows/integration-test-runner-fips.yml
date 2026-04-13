@@ -34,10 +34,10 @@ jobs:
           echo "[jce_provider]" >> "$IS_PACK/repository/conf/deployment.toml"
           echo 'provider_name = "BC"' >> "$IS_PACK/repository/conf/deployment.toml"
           echo "Running fips.sh on $IS_PACK"
-          CARBON_HOME="$(pwd)/$IS_PACK_NAME" bash "$IS_PACK/bin/fips.sh"
-          echo "Repackaging $IS_PACK_NAME"
+          CARBON_HOME="$(pwd)/$IS_PACK" bash "$IS_PACK/bin/fips.sh"
+          echo "Repackaging $IS_PACK"
           rm -f "$IS_ZIP"
-          zip -qr "$IS_ZIP" "$IS_PACK_NAME/"
+          zip -qr "$IS_ZIP" "$IS_PACK/"
       - name: Run Integration Tests with FIPS (JDK 21)
         working-directory: modules/integration/tests-integration/tests-backend
         run: |
