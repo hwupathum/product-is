@@ -29,10 +29,16 @@ jobs:
           IS_PACK=$(basename "$IS_ZIP" .zip)
           echo "Unzipping $IS_ZIP"
           unzip -q "$IS_ZIP"
+          echo "Contents after unzip:"
+          ls -la
+          echo "Checking deployment.toml path:"
+          ls -la "$IS_PACK/repository/conf/deployment.toml"
           echo "Adding FIPS configuration to $IS_PACK/repository/conf/deployment.toml"
           echo "" >> "$IS_PACK/repository/conf/deployment.toml"
           echo "[jce_provider]" >> "$IS_PACK/repository/conf/deployment.toml"
           echo 'provider_name = "BC"' >> "$IS_PACK/repository/conf/deployment.toml"
+          echo "Verifying FIPS config was added:"
+          tail -5 "$IS_PACK/repository/conf/deployment.toml"
           echo "Running fips.sh on $IS_PACK"
           CARBON_HOME="$(pwd)/$IS_PACK" bash "$IS_PACK/bin/fips.sh"
           echo "Repackaging $IS_PACK"
