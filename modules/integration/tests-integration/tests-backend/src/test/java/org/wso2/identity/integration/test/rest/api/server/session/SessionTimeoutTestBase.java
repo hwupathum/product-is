@@ -62,6 +62,7 @@ import java.util.Map;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
 
 /**
  * Base class for the session timeout tests.
@@ -154,19 +155,24 @@ public class SessionTimeoutTestBase extends ISIntegrationTest {
     @AfterClass(alwaysRun = true)
     public void cleanUp() throws Exception {
 
-        // The tenant cannot be deleted, so restore its session configurations and remove the application.
+        // The tenant cannot be deleted, so restore its session configurations and remove the application. Each step
+        // runs even if an earlier one fails, and the first failure is reported.
+        Exception failure = null;
         if (serverConfigRestClient != null) {
-            restoreDefaultConfiguration();
-            serverConfigRestClient.closeHttpClient();
+            failure = runCleanupStep(failure, this::restoreDefaultConfiguration);
+            failure = runCleanupStep(failure, serverConfigRestClient::closeHttpClient);
         }
         if (oAuth2RestClient != null) {
             if (appId != null) {
-                oAuth2RestClient.deleteApplication(appId);
+                failure = runCleanupStep(failure, () -> oAuth2RestClient.deleteApplication(appId));
             }
-            oAuth2RestClient.closeHttpClient();
+            failure = runCleanupStep(failure, oAuth2RestClient::closeHttpClient);
         }
         if (tenantMgtRestClient != null) {
-            tenantMgtRestClient.closeHttpClient();
+            failure = runCleanupStep(failure, tenantMgtRestClient::closeHttpClient);
+        }
+        if (failure != null) {
+            throw failure;
         }
     }
 
@@ -280,13 +286,34 @@ public class SessionTimeoutTestBase extends ISIntegrationTest {
 
         try (CloseableHttpClient client = createHttpClient(cookieStore);
              CloseableHttpResponse response = client.execute(new HttpGet(buildAuthorizeRequestUri()))) {
-            String location = null;
-            if (response.getFirstHeader(HttpHeaders.LOCATION) != null) {
-                location = response.getFirstHeader(HttpHeaders.LOCATION).getValue();
-            }
+            assertEquals(response.getStatusLine().getStatusCode(), HttpStatus.SC_MOVED_TEMPORARILY,
+                    "Unexpected response for the authorize request.");
+            assertNotNull(response.getFirstHeader(HttpHeaders.LOCATION),
+                    "Location header is missing in the authorize response.");
+            String location = response.getFirstHeader(HttpHeaders.LOCATION).getValue();
+
             // If redirected to the callback with a code, the session is active.
-            return location != null && location.contains(CALLBACK_URL) && location.contains("code=");
+            if (location.contains(CALLBACK_URL) && location.contains("code=")) {
+                return true;
+            }
+            // Otherwise, the session is expired only if the user is redirected to the login page.
+            assertTrue(location.contains(SESSION_DATA_KEY),
+                    "Expected a redirect to the login page for an inactive session, but got: " + location);
+            return false;
         }
+    }
+
+    private Exception runCleanupStep(Exception failure, CleanupStep step) {
+
+        try {
+            step.run();
+        } catch (Exception e) {
+            if (failure == null) {
+                return e;
+            }
+            failure.addSuppressed(e);
+        }
+        return failure;
     }
 
     private void addTenant() throws Exception {
@@ -406,5 +433,14 @@ public class SessionTimeoutTestBase extends ISIntegrationTest {
             }
         }
         return null;
+    }
+
+    /**
+     * A cleanup step that may throw an exception.
+     */
+    @FunctionalInterface
+    private interface CleanupStep {
+
+        void run() throws Exception;
     }
 }
